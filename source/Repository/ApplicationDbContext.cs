@@ -18,8 +18,7 @@ public class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<Invitation>(entity =>
         {
-            entity.Property(i => i.NumberOfAttendees)
-                .HasDefaultValue(1);
+            //TODO Add requirements for name and address
 
             entity.Property(i => i.Email)
                 .IsRequired()

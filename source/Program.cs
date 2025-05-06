@@ -1,11 +1,10 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.EntityFrameworkCore;
-using MinimalApi.Repository;
+using WeddingAPI.Repository;
+using WeddingAPI.Models;
+using WeddingAPI.Services.Interfaces;
+using WeddingAPI.Repository.Interfaces;
+using WeddingAPI.Services;
 
-namespace MinimalApi;
+namespace WeddingAPI;
 
 public class Program
 {
@@ -18,15 +17,12 @@ public class Program
         builder.Services.AddSwaggerGen();
 
         // Add DbContext
-        builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+        //builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        //    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
         // Add UnitOfWork and DataService
         builder.Services.AddScoped<IUnitOfWork<ApplicationDbContext>, UnitOfWork<ApplicationDbContext>>();
-        builder.Services.AddScoped<IGenericAsyncDataService<Item, ApplicationDbContext>, GenericAsyncDataService<Item, ApplicationDbContext>>();
-
-        // Add Azure Application Insights if needed
-        // builder.Services.AddApplicationInsightsTelemetry();
+        builder.Services.AddScoped<IGenericAsyncDataService<Invitation, ApplicationDbContext>, GenericAsyncDataService<Invitation, ApplicationDbContext>>();
 
         var app = builder.Build();
 
@@ -40,7 +36,7 @@ public class Program
         app.UseHttpsRedirection();
 
         // Map all endpoints
-        Api.MapEndpoints(app);
+        WeddingApi.MapEndpoints(app);
 
         app.Run();
     }

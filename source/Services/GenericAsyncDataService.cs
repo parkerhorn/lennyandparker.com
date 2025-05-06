@@ -62,7 +62,9 @@ public class GenericAsyncDataService<TEntity, TContext> : IGenericAsyncDataServi
     {
         try
         {
-            return await _unitOfWork.GetGenericAsyncRepository<TEntity>().AddAsync(entity);
+            var repo = _unitOfWork.GetGenericAsyncRepository<TEntity>();
+            await repo.AddAsync(entity);
+            return entity;
         }
         catch (Exception ex)
         {
@@ -90,7 +92,7 @@ public class GenericAsyncDataService<TEntity, TContext> : IGenericAsyncDataServi
         try
         {
             await _unitOfWork.GetGenericAsyncRepository<TEntity>().AddAsync(entity);
-            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync(new CancellationToken());
             return entity;
         }
         catch (Exception ex)
@@ -133,7 +135,7 @@ public class GenericAsyncDataService<TEntity, TContext> : IGenericAsyncDataServi
         try
         {
             _unitOfWork.GetGenericAsyncRepository<TEntity>().Update(entity);
-            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync(new CancellationToken());
             return entity;
         }
         catch (Exception ex)
@@ -148,7 +150,7 @@ public class GenericAsyncDataService<TEntity, TContext> : IGenericAsyncDataServi
         try
         {
             _unitOfWork.GetGenericAsyncRepository<TEntity>().Update(entities);
-            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync(new CancellationToken());
             return entities;
         }
         catch (Exception ex)
@@ -189,7 +191,7 @@ public class GenericAsyncDataService<TEntity, TContext> : IGenericAsyncDataServi
         try
         {
             _unitOfWork.GetGenericAsyncRepository<TEntity>().Delete(entity);
-            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync(new CancellationToken());
             return entity;
         }
         catch (Exception ex)
@@ -204,7 +206,7 @@ public class GenericAsyncDataService<TEntity, TContext> : IGenericAsyncDataServi
         try
         {
             _unitOfWork.GetGenericAsyncRepository<TEntity>().Delete(entities);
-            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync(new CancellationToken());
             return entities;
         }
         catch (Exception ex)
@@ -214,7 +216,7 @@ public class GenericAsyncDataService<TEntity, TContext> : IGenericAsyncDataServi
         }
     }
 
-    public EntityState GetContextState<TEntity>(TEntity entity)
+    public EntityState GetContextState<TEntityUser>(TEntity entity)
     {
         try
         {
@@ -227,7 +229,7 @@ public class GenericAsyncDataService<TEntity, TContext> : IGenericAsyncDataServi
         }
     }
 
-    public EntityState SetContextState<TEntity>(TEntity entity, EntityState state)
+    public EntityState SetContextState<TEntityUser>(TEntity entity, EntityState state)
     {
         try
         {
@@ -245,7 +247,7 @@ public class GenericAsyncDataService<TEntity, TContext> : IGenericAsyncDataServi
     {
         try
         {
-            return _unitOfWork.SaveChangesAsync();
+            return _unitOfWork.SaveChangesAsync(new CancellationToken());
         }
         catch (Exception ex)
         {

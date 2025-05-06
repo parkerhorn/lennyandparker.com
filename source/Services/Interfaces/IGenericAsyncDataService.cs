@@ -33,9 +33,9 @@ public interface IGenericAsyncDataService<TEntity, TContext> where TEntity : cla
 
     public Task<IList<TEntity>> DeleteAndSaveAsync(IList<TEntity> entities);
 
-    public EntityState GetContextState<TEntity>(TEntity entity);
+    public EntityState GetContextState<TEntityUser>(TEntity entity);
 
-    public EntityState SetContextState<TEntity>(TEntity entity, EntityState state);
+    public EntityState SetContextState<TEntityUser>(TEntity entity, EntityState state);
 
     public Task SaveChangesAsync();
 }

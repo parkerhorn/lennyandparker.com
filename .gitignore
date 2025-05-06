@@ -1,0 +1,15 @@
+/.vs
+/bin
+/obj
+/packages
+/Properties
+/wwwroot
+/source/obj
+/source/bin
+/source/Properties
+/source/wwwroot
+/source/appsettings.Development.json
+/source/appsettings.json
+/source/appsettings.Production.json
+/source/appsettings.Staging.json
+

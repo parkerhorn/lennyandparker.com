@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Query;
 using System.Linq.Expressions;
 
@@ -24,17 +25,17 @@ public interface IGenericAsyncRepository<T> where T : class
 
     public Task<T?> GetByIdAsync(object id);
 
-    public ValueTask<EntityEntry<T>> AddAsync(T entity, CancellationToken cToken = default)
+    public ValueTask<EntityEntry<T>> AddAsync(T entity, CancellationToken cToken = default);
 
-    public Task AddAsync(params T[] entities)
+    public Task AddAsync(params T[] entities);
 
-    public Task AddAsync(IEnumerable<T> entities, CancellationToken cToken = default)
+    public Task AddAsync(IEnumerable<T> entities, CancellationToken cToken = default);
 
     public void Update(T entity);
 
     public void Update(IEnumerable<T> entities);
 
-    public Task DeleteAsync(object id)
+    public Task DeleteAsync(object id);
 
     public void Delete(T entity);
 

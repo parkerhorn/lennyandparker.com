@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Concurrent;
+using WeddingApi.Repository.Interfaces;
 using WeddingAPI.Repository.Interfaces;
 
 namespace WeddingAPI.Repository;
@@ -6,6 +9,7 @@ public class UnitOfWork<TContext> : IDisposable, IRepositoryFactory<TContext>, I
 {
     public TContext _context { get; }
     private readonly ConcurrentDictionary<Type, object> _asyncRepositories;
+    private bool disposedValue;
 
     public UnitOfWork(TContext context)
     {
@@ -17,35 +21,38 @@ public class UnitOfWork<TContext> : IDisposable, IRepositoryFactory<TContext>, I
     {
         var type = typeof(TEntity);
 
-        if (_asyncRepositories[type] is not IAsyncRepository<TEntity> repository)
+        if (_asyncRepositories[type] is not IGenericAsyncRepository<TEntity> repository)
         {
-            throw new Exception("Repository does not implement IGenericAsyncRepository")
+            throw new Exception("Repository does not implement IGenericAsyncRepository");
         }
 
         if (!_asyncRepositories.ContainsKey(type))
         {
-            _asyncRepositories.TryAdd(type, new GenericAsyncRepository<TEntity>(_context))
+            _asyncRepositories.TryAdd(type, new GenericAsyncRepository<TEntity>(_context));
         }
 
         return repository;
     }
 
-    public async Task<int> SaveChangesAsync(CancellationToken cToken = null)
+    public async Task<int> SaveChangesAsync(CancellationToken cToken)
     {
         return await _context.SaveChangesAsync(cToken);
     }
 
-    public void Dispose
+    protected virtual void Dispose(bool disposing)
     {
-        Dispose(true);
-        GC.SuppressFinalize(true);
+        if (!disposedValue)
+        {
+            if (disposing)
+            {
+                _context.Dispose();
+            }
+        }
     }
 
-    protected virtual void Dispose(bool isDisposing)
+    public void Dispose()
     {
-        if (isDisposing)
-        {
-            _context.Dispose();
-        }
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }

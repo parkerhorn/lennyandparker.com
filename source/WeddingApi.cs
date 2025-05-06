@@ -1,11 +1,10 @@
-using Microsoft.AspNetCore.Builder;
 using WeddingAPI.Models;
 using WeddingAPI.Services.Interfaces;
 using WeddingAPI.Repository;
 
 namespace WeddingAPI;
 
-public static class Api
+public static class WeddingApi
 {
     public static void MapEndpoints(WebApplication app)
     {

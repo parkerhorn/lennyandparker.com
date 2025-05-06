@@ -1,0 +1,63 @@
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+
+variables:
+  solution: '**/*.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+
+stages:
+- stage: Build
+  displayName: 'Build and Test'
+  jobs:
+  - job: Build
+    displayName: 'Build'
+    pool:
+      vmImage: 'windows-latest'
+    steps:
+    - template: build-template.yml
+      parameters:
+        solution: $(solution)
+        buildPlatform: $(buildPlatform)
+        buildConfiguration: $(buildConfiguration)
+
+- stage: DeployDev
+  displayName: 'Deploy to Dev'
+  dependsOn: Build
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
+  jobs:
+  - deployment: Deploy
+    displayName: 'Deploy to Dev'
+    environment: 'dev'
+    pool:
+      vmImage: 'windows-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - template: deploy-template.yml
+            parameters:
+              environment: 'dev'
+              appName: 'wedding-api-dev'
+
+- stage: DeployProd
+  displayName: 'Deploy to Production'
+  dependsOn: Build
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  jobs:
+  - deployment: Deploy
+    displayName: 'Deploy to Production'
+    environment: 'prod'
+    pool:
+      vmImage: 'windows-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - template: deploy-template.yml
+            parameters:
+              environment: 'prod'
+              appName: 'wedding-api-prod' 

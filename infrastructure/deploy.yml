@@ -1,0 +1,40 @@
+parameters:
+  workingDirectory: ''
+  stateKey: ''
+  varFile: ''
+
+steps:
+- task: TerraformInstaller@1
+  displayName: 'Install Terraform'
+  inputs:
+    terraformVersion: 'latest'
+
+- task: TerraformTaskV4@4
+  displayName: 'Terraform Init'
+  inputs:
+    provider: 'azurerm'
+    command: 'init'
+    workingDirectory: ${{ parameters.workingDirectory }}
+    backendServiceArm: 'Azure Subscription'
+    backendAzureRmResourceGroupName: 'wedding-api-capability-rg'
+    backendAzureRmStorageAccountName: 'wedding-api-state-storage'
+    backendAzureRmContainerName: 'tfstate'
+    backendAzureRmKey: ${{ parameters.stateKey }}
+
+- task: TerraformTaskV4@4
+  displayName: 'Terraform Plan'
+  inputs:
+    provider: 'azurerm'
+    command: 'plan'
+    workingDirectory: ${{ parameters.workingDirectory }}
+    environmentServiceNameAzureRM: 'Azure Subscription'
+    commandOptions: ${{ parameters.varFile }}
+
+- task: TerraformTaskV4@4
+  displayName: 'Terraform Apply'
+  inputs:
+    provider: 'azurerm'
+    command: 'apply'
+    workingDirectory: ${{ parameters.workingDirectory }}
+    environmentServiceNameAzureRM: 'Azure Subscription'
+    commandOptions: ${{ parameters.varFile }} 

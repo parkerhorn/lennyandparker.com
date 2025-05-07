@@ -1,7 +1,13 @@
 parameters:
-  workingDirectory: ''
-  stateKey: ''
-  varFile: ''
+- name: workingDirectory
+  type: string
+  default: ''
+- name: stateKey
+  type: string
+  default: ''
+- name: varFile
+  type: string
+  default: ''
 
 jobs:
 - job: Deploy

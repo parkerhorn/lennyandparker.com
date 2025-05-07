@@ -34,6 +34,12 @@ jobs:
         TENANT_ID=$(az account show --query tenantId -o tsv)
         echo "Debug: Tenant ID: $TENANT_ID"
         echo "$TENANT_ID" > $(Agent.TempDirectory)/tenant_id.txt
+        
+        # Get subscription ID
+        echo "Debug: Getting subscription ID..."
+        SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+        echo "Debug: Subscription ID: $SUBSCRIPTION_ID"
+        echo "$SUBSCRIPTION_ID" > $(Agent.TempDirectory)/subscription_id.txt
 
   - task: TerraformInstaller@1
     displayName: 'Install Terraform'
@@ -58,7 +64,7 @@ jobs:
       targetType: 'filePath'
       filePath: '$(System.DefaultWorkingDirectory)/infrastructure/capability/import.sh'
       workingDirectory: ${{ parameters.workingDirectory }}
-      arguments: '"$(SUBSCRIPTION_ID)" "$(SERVICE_PRINCIPAL_ID)" "$(cat $(Agent.TempDirectory)/tenant_id.txt)" "$(cat $(Agent.TempDirectory)/access_token.txt)"'
+      arguments: '"$(cat $(Agent.TempDirectory)/subscription_id.txt)" "$(SERVICE_PRINCIPAL_ID)" "$(cat $(Agent.TempDirectory)/tenant_id.txt)" "$(cat $(Agent.TempDirectory)/access_token.txt)"'
     continueOnError: true
 
   - task: TerraformTaskV4@4

@@ -1,11 +1,12 @@
 #!/bin/bash
 
-# Get subscription ID from first argument
-SUBSCRIPTION_ID=$1
+# Get subscription ID from environment variable
+SUBSCRIPTION_ID=$SUBSCRIPTION_ID
+SERVICE_PRINCIPAL_ID=$SERVICE_PRINCIPAL_ID
 
 # Create a temporary tfvars file with the service principal ID
 cat > terraform.tfvars << EOF
-service_principal_id = "$(SERVICE_PRINCIPAL_ID)"
+service_principal_id = "$SERVICE_PRINCIPAL_ID"
 EOF
 
 # Import resource group

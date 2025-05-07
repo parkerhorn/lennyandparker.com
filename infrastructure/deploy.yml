@@ -46,8 +46,8 @@ jobs:
       targetType: 'filePath'
       filePath: '$(System.DefaultWorkingDirectory)/infrastructure/capability/import.sh'
       workingDirectory: ${{ parameters.workingDirectory }}
-      arguments: '"$(SUBSCRIPTION_ID)"'
     env:
+      SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
       SERVICE_PRINCIPAL_ID: $(SERVICE_PRINCIPAL_ID)
     continueOnError: true
 

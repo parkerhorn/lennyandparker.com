@@ -29,7 +29,7 @@ jobs:
         echo "Debug: Getting subscription ID..."
         SUBSCRIPTION_ID=$(az account show --query id -o tsv)
         echo "Debug: Subscription ID: $SUBSCRIPTION_ID"
-        echo "$SUBSCRIPTION_ID" > $(Agent.TempDirectory)/subscription_id.txt
+        echo "##vso[task.setvariable variable=SUBSCRIPTION_ID]$SUBSCRIPTION_ID"
 
   - task: TerraformInstaller@1
     displayName: 'Install Terraform'
@@ -55,7 +55,7 @@ jobs:
       command: 'custom'
       workingDirectory: ${{ parameters.workingDirectory }}
       environmentServiceNameAzureRM: 'Azure Subscription'
-      customCommand: 'import azurerm_resource_group.wedding_api_capability_rg /subscriptions/$(cat $(Agent.TempDirectory)/subscription_id.txt)/resourceGroups/wedding-api-capability-rg'
+      customCommand: 'import azurerm_resource_group.wedding_api_capability_rg /subscriptions/$(SUBSCRIPTION_ID)/resourceGroups/wedding-api-capability-rg'
     continueOnError: true
 
   - task: TerraformTaskV4@4
@@ -65,7 +65,7 @@ jobs:
       command: 'custom'
       workingDirectory: ${{ parameters.workingDirectory }}
       environmentServiceNameAzureRM: 'Azure Subscription'
-      customCommand: 'import azurerm_storage_account.terraform_state /subscriptions/$(cat $(Agent.TempDirectory)/subscription_id.txt)/resourceGroups/wedding-api-capability-rg/providers/Microsoft.Storage/storageAccounts/weddingapistate'
+      customCommand: 'import azurerm_storage_account.terraform_state /subscriptions/$(SUBSCRIPTION_ID)/resourceGroups/wedding-api-capability-rg/providers/Microsoft.Storage/storageAccounts/weddingapistate'
     continueOnError: true
 
   - task: TerraformTaskV4@4

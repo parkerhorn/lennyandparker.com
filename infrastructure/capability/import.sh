@@ -3,6 +3,11 @@
 # Get subscription ID from first argument
 SUBSCRIPTION_ID=$1
 
+# Create a temporary tfvars file with the service principal ID
+cat > terraform.tfvars << EOF
+service_principal_id = "$(SERVICE_PRINCIPAL_ID)"
+EOF
+
 # Import resource group
 echo "Importing resource group..."
 terraform import azurerm_resource_group.wedding_api_capability_rg /subscriptions/$SUBSCRIPTION_ID/resourceGroups/wedding-api-capability-rg

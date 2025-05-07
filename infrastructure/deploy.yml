@@ -46,7 +46,9 @@ jobs:
       targetType: 'filePath'
       filePath: '$(System.DefaultWorkingDirectory)/infrastructure/capability/import.sh'
       workingDirectory: ${{ parameters.workingDirectory }}
-      arguments: '$(SUBSCRIPTION_ID)'
+      arguments: '"$(SUBSCRIPTION_ID)"'
+    env:
+      SERVICE_PRINCIPAL_ID: $(SERVICE_PRINCIPAL_ID)
     continueOnError: true
 
   - task: TerraformTaskV4@4

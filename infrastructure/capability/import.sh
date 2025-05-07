@@ -10,8 +10,9 @@ subscription_id = "$SUBSCRIPTION_ID"
 service_principal_id = "$SERVICE_PRINCIPAL_ID"
 EOF
 
-# Set ARM_ACCESS_TOKEN for Terraform
+# Set environment variables for Terraform
 export ARM_ACCESS_TOKEN=$ARM_ACCESS_TOKEN
+export ARM_TENANT_ID=$ARM_TENANT_ID
 
 # Import resource group
 echo "Importing resource group..."

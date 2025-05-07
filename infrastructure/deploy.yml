@@ -72,16 +72,33 @@ jobs:
         cat ${{ parameters.workingDirectory }}/terraform.tfvars
 
   - task: TerraformTaskV4@4
-    displayName: 'Import Resources'
+    displayName: 'Import Resource Group'
     inputs:
       provider: 'azurerm'
       command: 'custom'
       workingDirectory: ${{ parameters.workingDirectory }}
       environmentServiceNameAzureRM: 'Azure Subscription'
-      customCommand: |
-        import -var-file=terraform.tfvars azurerm_resource_group.wedding_api_capability_rg /subscriptions/$(cat $(Agent.TempDirectory)/subscription_id.txt)/resourceGroups/wedding-api-capability-rg
-        import -var-file=terraform.tfvars azurerm_storage_account.terraform_state /subscriptions/$(cat $(Agent.TempDirectory)/subscription_id.txt)/resourceGroups/wedding-api-capability-rg/providers/Microsoft.Storage/storageAccounts/weddingapistate
-        import -var-file=terraform.tfvars azurerm_storage_container.terraform_state https://weddingapistate.blob.core.windows.net/tfstate
+      customCommand: 'import -var-file=terraform.tfvars azurerm_resource_group.wedding_api_capability_rg /subscriptions/$(cat $(Agent.TempDirectory)/subscription_id.txt)/resourceGroups/wedding-api-capability-rg'
+    continueOnError: true
+
+  - task: TerraformTaskV4@4
+    displayName: 'Import Storage Account'
+    inputs:
+      provider: 'azurerm'
+      command: 'custom'
+      workingDirectory: ${{ parameters.workingDirectory }}
+      environmentServiceNameAzureRM: 'Azure Subscription'
+      customCommand: 'import -var-file=terraform.tfvars azurerm_storage_account.terraform_state /subscriptions/$(cat $(Agent.TempDirectory)/subscription_id.txt)/resourceGroups/wedding-api-capability-rg/providers/Microsoft.Storage/storageAccounts/weddingapistate'
+    continueOnError: true
+
+  - task: TerraformTaskV4@4
+    displayName: 'Import Storage Container'
+    inputs:
+      provider: 'azurerm'
+      command: 'custom'
+      workingDirectory: ${{ parameters.workingDirectory }}
+      environmentServiceNameAzureRM: 'Azure Subscription'
+      customCommand: 'import -var-file=terraform.tfvars azurerm_storage_container.terraform_state https://weddingapistate.blob.core.windows.net/tfstate'
     continueOnError: true
 
   - task: TerraformTaskV4@4

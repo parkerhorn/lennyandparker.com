@@ -27,6 +27,9 @@ cat terraform.tfvars
 # Set environment variables for Terraform
 export ARM_ACCESS_TOKEN=$ACCESS_TOKEN
 export ARM_TENANT_ID=$TENANT_ID
+export ARM_SUBSCRIPTION_ID=$SUBSCRIPTION_ID
+export ARM_USE_OIDC=true
+export ARM_USE_CLI=false
 
 # Debug logging
 echo "Debug: Environment variables set:"

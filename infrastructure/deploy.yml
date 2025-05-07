@@ -48,34 +48,34 @@ jobs:
       backendAzureRmContainerName: 'tfstate'
       backendAzureRmKey: ${{ parameters.stateKey }}
 
-  - task: TerraformTaskV4@4
+  - task: Bash@3
     displayName: 'Import Resource Group'
     inputs:
-      provider: 'azurerm'
-      command: 'custom'
+      targetType: 'inline'
       workingDirectory: ${{ parameters.workingDirectory }}
-      environmentServiceNameAzureRM: 'Azure Subscription'
-      customCommand: 'import azurerm_resource_group.wedding_api_capability_rg /subscriptions/$(SUBSCRIPTION_ID)/resourceGroups/wedding-api-capability-rg'
+      script: |
+        echo "Importing resource group..."
+        /opt/hostedtoolcache/terraform/1.11.3/x64/terraform import azurerm_resource_group.wedding_api_capability_rg /subscriptions/$(SUBSCRIPTION_ID)/resourceGroups/wedding-api-capability-rg
     continueOnError: true
 
-  - task: TerraformTaskV4@4
+  - task: Bash@3
     displayName: 'Import Storage Account'
     inputs:
-      provider: 'azurerm'
-      command: 'custom'
+      targetType: 'inline'
       workingDirectory: ${{ parameters.workingDirectory }}
-      environmentServiceNameAzureRM: 'Azure Subscription'
-      customCommand: 'import azurerm_storage_account.terraform_state /subscriptions/$(SUBSCRIPTION_ID)/resourceGroups/wedding-api-capability-rg/providers/Microsoft.Storage/storageAccounts/weddingapistate'
+      script: |
+        echo "Importing storage account..."
+        /opt/hostedtoolcache/terraform/1.11.3/x64/terraform import azurerm_storage_account.terraform_state /subscriptions/$(SUBSCRIPTION_ID)/resourceGroups/wedding-api-capability-rg/providers/Microsoft.Storage/storageAccounts/weddingapistate
     continueOnError: true
 
-  - task: TerraformTaskV4@4
+  - task: Bash@3
     displayName: 'Import Storage Container'
     inputs:
-      provider: 'azurerm'
-      command: 'custom'
+      targetType: 'inline'
       workingDirectory: ${{ parameters.workingDirectory }}
-      environmentServiceNameAzureRM: 'Azure Subscription'
-      customCommand: 'import azurerm_storage_container.terraform_state https://weddingapistate.blob.core.windows.net/tfstate'
+      script: |
+        echo "Importing storage container..."
+        /opt/hostedtoolcache/terraform/1.11.3/x64/terraform import azurerm_storage_container.terraform_state https://weddingapistate.blob.core.windows.net/tfstate
     continueOnError: true
 
   - task: TerraformTaskV4@4

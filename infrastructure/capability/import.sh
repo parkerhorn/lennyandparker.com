@@ -10,6 +10,9 @@ subscription_id = "$SUBSCRIPTION_ID"
 service_principal_id = "$SERVICE_PRINCIPAL_ID"
 EOF
 
+# Set ARM_ACCESS_TOKEN for Terraform
+export ARM_ACCESS_TOKEN=$ARM_ACCESS_TOKEN
+
 # Import resource group
 echo "Importing resource group..."
 terraform import azurerm_resource_group.wedding_api_capability_rg /subscriptions/$SUBSCRIPTION_ID/resourceGroups/wedding-api-capability-rg

@@ -22,6 +22,8 @@ jobs:
       scriptLocation: 'inlineScript'
       inlineScript: |
         az account show
+        # Store the login credentials for other tasks
+        az account get-access-token --query accessToken -o tsv > $(Agent.TempDirectory)/access_token.txt
 
   - task: TerraformInstaller@1
     displayName: 'Install Terraform'
@@ -49,6 +51,7 @@ jobs:
     env:
       SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
       SERVICE_PRINCIPAL_ID: $(SERVICE_PRINCIPAL_ID)
+      ARM_ACCESS_TOKEN: $(cat $(Agent.TempDirectory)/access_token.txt)
     continueOnError: true
 
   - task: TerraformTaskV4@4

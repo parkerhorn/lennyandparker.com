@@ -1,4 +1,7 @@
-name: Terraform Deploy
+parameters:
+  workingDirectory: ''
+  stateKey: ''
+  varFile: ''
 
 jobs:
 - job: Deploy

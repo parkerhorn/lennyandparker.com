@@ -12,4 +12,9 @@ variable "service_principal_id" {
 variable "subscription_id" {
   description = "The ID of the Azure subscription"
   type        = string
+}
+
+variable "tenant_id" {
+  description = "The ID of the Azure tenant"
+  type        = string
 } 

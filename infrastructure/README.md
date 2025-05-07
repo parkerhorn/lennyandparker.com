@@ -28,11 +28,31 @@ Before running any pipelines, you need to manually create the capability infrast
      --account-name weddingapistate
    ```
 
-4. **Deploy Capability Infrastructure**:
+4. **Create Service Principal**:
+   ```bash
+   # Create service principal
+   az ad sp create-for-rbac --name "wedding-api-deploy" --role Contributor --scopes /subscriptions/<subscription-id>
+   
+   # Note the appId from the output - you'll need it for the pipeline variable
+   ```
+
+5. **Add Pipeline Variable**:
+   - Go to your Azure DevOps project
+   - Click on "Pipelines" in the left menu
+   - Click on "Edit" for your pipeline
+   - Click on "Variables" button (top right)
+   - Click "New variable"
+   - Add:
+     - Name: `SERVICE_PRINCIPAL_ID`
+     - Value: The appId from step 4
+     - Check "Keep this value secret"
+   - Click "Save"
+
+6. **Deploy Capability Infrastructure**:
    ```bash
    cd capability
    terraform init
-   terraform apply -var="service_principal_id=<appId-from-previous-step>"
+   terraform apply -var="service_principal_id=<appId-from-step-4>"
    ```
 
 After these steps are complete, you can use the pipelines for subsequent deployments.

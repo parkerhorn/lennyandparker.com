@@ -61,7 +61,7 @@ The pipeline will automatically:
 - Set up dev and prod environments
 - Create and secure necessary variables
 - Deploy infrastructure
-- Build and deploy the application
+- Build and deploy the applicationdev.azure
 
 ## API Endpoints
 

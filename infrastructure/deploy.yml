@@ -1,3 +1,11 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
 parameters:
   workingDirectory: ''
   stateKey: ''
@@ -17,7 +25,7 @@ steps:
     workingDirectory: ${{ parameters.workingDirectory }}
     backendServiceArm: 'Azure Subscription'
     backendAzureRmResourceGroupName: 'wedding-api-capability-rg'
-    backendAzureRmStorageAccountName: 'wedding-api-state-storage'
+    backendAzureRmStorageAccountName: 'weddingapistate'
     backendAzureRmContainerName: 'tfstate'
     backendAzureRmKey: ${{ parameters.stateKey }}
 

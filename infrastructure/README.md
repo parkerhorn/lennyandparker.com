@@ -2,6 +2,41 @@
 
 This directory contains the Terraform configuration for the Wedding API infrastructure. The infrastructure is split into two main components:
 
+## Initial Setup (One-time Manual Steps)
+
+Before running any pipelines, you need to manually create the capability infrastructure first:
+
+1. **Create Resource Group**:
+   ```bash
+   az group create --name wedding-api-capability-rg --location eastus
+   ```
+
+2. **Create Storage Account**:
+   ```bash
+   az storage account create \
+     --name weddingapistate \
+     --resource-group wedding-api-capability-rg \
+     --location eastus \
+     --sku Standard_LRS \
+     --encryption-services blob
+   ```
+
+3. **Create Blob Container**:
+   ```bash
+   az storage container create \
+     --name tfstate \
+     --account-name weddingapistate
+   ```
+
+4. **Deploy Capability Infrastructure**:
+   ```bash
+   cd capability
+   terraform init
+   terraform apply -var="service_principal_id=<appId-from-previous-step>"
+   ```
+
+After these steps are complete, you can use the pipelines for subsequent deployments.
+
 ## Pre-deployment Checklist
 
 Before deploying to Azure, ensure:
@@ -31,12 +66,50 @@ Before deploying to Azure, ensure:
    # Note the appId from the output - you'll need it for deployment
    ```
 
+4. **Azure DevOps Setup**:
+   - Go to your Azure DevOps project
+   - Click on "Project Settings" (bottom left)
+   - Click on "Extensions" under "General"
+   - Click "Browse Marketplace"
+   - Search for "Terraform"
+   - Install "Terraform" by Microsoft DevLabs
+   - Wait for the extension to be installed
+
+5. **Create Service Connection**:
+   - Go to your Azure DevOps project
+   - Click on "Project Settings" (bottom left)
+   - Click on "Service connections" under "Pipelines"
+   - Click "Create service connection"
+   - Select "Azure Resource Manager"
+   - Select "Service principal (manual)"
+   - Fill in the details:
+     - Environment: Azure Cloud
+     - Scope Level: Subscription
+     - Subscription: Select your subscription
+     - Service Principal ID: Use the appId from step 3
+     - Service Principal Key: Use the password from step 3
+     - Tenant ID: Use the tenant from step 3
+     - Service Connection Name: "Azure Subscription"
+   - Click "Grant access permission to all pipelines"
+   - Click "Save"
+
+6. **Request Pipeline Parallelism**:
+   - Go to https://aka.ms/azpipelines-parallelism-request
+   - Fill out the form with:
+     - Organization name
+     - Project name
+     - Email address
+     - Reason for request (e.g., "Infrastructure deployment")
+   - Submit the form
+   - Wait for approval (usually takes 1-2 business days)
+   - Once approved, your pipelines will be able to run
+
 ## Capability Infrastructure (`capability/`)
 
 Shared resources used across all environments:
 
 - **Resource Group**: `wedding-api-capability-rg`
-- **Storage Account**: `wedding-api-state-storage` (for Terraform state)
+- **Storage Account**: `weddingapistate` (for Terraform state)
 - **App Service Plan**: `wedding-api-asp` (Linux, B1)
 - **SQL Server**: `wedding-api-sql-server`
 - **Key Vault**: `wedding-api-kv`
@@ -53,7 +126,7 @@ Environment-specific resources:
 ## Naming Conventions
 
 - Resource Groups: `wedding-api-{env}-rg`
-- Storage Accounts: `wedding-api-{purpose}`
+- Storage Accounts: `weddingapistate`
 - SQL Servers: `wedding-api-sql-server`
 - SQL Databases: `WeddingApi-{env}`
 - App Service Plans: `wedding-api-asp`
@@ -77,17 +150,3 @@ Environment-specific resources:
    terraform init
    terraform apply -var="service_principal_id=<appId-from-previous-step>"
    ```
-
-2. Deploy environment infrastructure:
-   ```bash
-   cd environment
-   terraform init
-   terraform apply -var-file=dev.tfvars  # or prod.tfvars
-   ```
-
-## State Management
-
-- Capability state: `capability.tfstate`
-- Environment state: `environment-{env}.tfstate`
-- State is stored in Azure Storage Account
-- Each environment has its own state file 

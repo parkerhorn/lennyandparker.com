@@ -52,30 +52,33 @@ jobs:
     displayName: 'Import Resource Group'
     inputs:
       provider: 'azurerm'
-      command: 'custom'
+      command: 'import'
       workingDirectory: ${{ parameters.workingDirectory }}
       environmentServiceNameAzureRM: 'Azure Subscription'
-      customCommand: 'import azurerm_resource_group.wedding_api_capability_rg /subscriptions/$(SUBSCRIPTION_ID)/resourceGroups/wedding-api-capability-rg'
+      resourceAddress: 'azurerm_resource_group.wedding_api_capability_rg'
+      resourceId: '/subscriptions/$(SUBSCRIPTION_ID)/resourceGroups/wedding-api-capability-rg'
     continueOnError: true
 
   - task: TerraformTaskV4@4
     displayName: 'Import Storage Account'
     inputs:
       provider: 'azurerm'
-      command: 'custom'
+      command: 'import'
       workingDirectory: ${{ parameters.workingDirectory }}
       environmentServiceNameAzureRM: 'Azure Subscription'
-      customCommand: 'import azurerm_storage_account.terraform_state /subscriptions/$(SUBSCRIPTION_ID)/resourceGroups/wedding-api-capability-rg/providers/Microsoft.Storage/storageAccounts/weddingapistate'
+      resourceAddress: 'azurerm_storage_account.terraform_state'
+      resourceId: '/subscriptions/$(SUBSCRIPTION_ID)/resourceGroups/wedding-api-capability-rg/providers/Microsoft.Storage/storageAccounts/weddingapistate'
     continueOnError: true
 
   - task: TerraformTaskV4@4
     displayName: 'Import Storage Container'
     inputs:
       provider: 'azurerm'
-      command: 'custom'
+      command: 'import'
       workingDirectory: ${{ parameters.workingDirectory }}
       environmentServiceNameAzureRM: 'Azure Subscription'
-      customCommand: 'import azurerm_storage_container.terraform_state https://weddingapistate.blob.core.windows.net/tfstate'
+      resourceAddress: 'azurerm_storage_container.terraform_state'
+      resourceId: 'https://weddingapistate.blob.core.windows.net/tfstate'
     continueOnError: true
 
   - task: TerraformTaskV4@4

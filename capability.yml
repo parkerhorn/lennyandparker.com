@@ -1,0 +1,18 @@
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+  paths:
+    include:
+      - infrastructure/capability/**
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- template: deploy.yml
+  parameters:
+    workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/capability'
+    stateKey: 'capability.tfstate'
+    varFile: '' 

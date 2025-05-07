@@ -58,11 +58,7 @@ jobs:
       targetType: 'filePath'
       filePath: '$(System.DefaultWorkingDirectory)/infrastructure/capability/import.sh'
       workingDirectory: ${{ parameters.workingDirectory }}
-    env:
-      SUBSCRIPTION_ID: $(SUBSCRIPTION_ID)
-      SERVICE_PRINCIPAL_ID: $(SERVICE_PRINCIPAL_ID)
-      ARM_ACCESS_TOKEN: $(cat $(Agent.TempDirectory)/access_token.txt)
-      ARM_TENANT_ID: $(cat $(Agent.TempDirectory)/tenant_id.txt)
+      arguments: '"$(SUBSCRIPTION_ID)" "$(SERVICE_PRINCIPAL_ID)" "$(cat $(Agent.TempDirectory)/tenant_id.txt)" "$(cat $(Agent.TempDirectory)/access_token.txt)"'
     continueOnError: true
 
   - task: TerraformTaskV4@4

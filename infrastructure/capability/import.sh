@@ -1,13 +1,17 @@
 #!/bin/bash
 
-# Get subscription ID from environment variable
-SUBSCRIPTION_ID=$SUBSCRIPTION_ID
-SERVICE_PRINCIPAL_ID=$SERVICE_PRINCIPAL_ID
-TENANT_ID=$ARM_TENANT_ID
+# Get values from command line arguments
+SUBSCRIPTION_ID=$1
+SERVICE_PRINCIPAL_ID=$2
+TENANT_ID=$3
+ACCESS_TOKEN=$4
 
 # Debug logging
-echo "Debug: ARM_TENANT_ID from environment: $ARM_TENANT_ID"
-echo "Debug: TENANT_ID variable: $TENANT_ID"
+echo "Debug: Arguments received:"
+echo "Debug: SUBSCRIPTION_ID: $SUBSCRIPTION_ID"
+echo "Debug: SERVICE_PRINCIPAL_ID: $SERVICE_PRINCIPAL_ID"
+echo "Debug: TENANT_ID: $TENANT_ID"
+echo "Debug: ACCESS_TOKEN: ***"
 
 # Create a temporary tfvars file with both variables
 cat > terraform.tfvars << EOF
@@ -21,8 +25,8 @@ echo "Debug: Contents of terraform.tfvars:"
 cat terraform.tfvars
 
 # Set environment variables for Terraform
-export ARM_ACCESS_TOKEN=$ARM_ACCESS_TOKEN
-export ARM_TENANT_ID=$ARM_TENANT_ID
+export ARM_ACCESS_TOKEN=$ACCESS_TOKEN
+export ARM_TENANT_ID=$TENANT_ID
 
 # Debug logging
 echo "Debug: Environment variables set:"

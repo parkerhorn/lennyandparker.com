@@ -2,27 +2,14 @@
 
 # Get values from command line arguments
 SUBSCRIPTION_ID=$1
-SERVICE_PRINCIPAL_ID=$2
-TENANT_ID=$3
-ACCESS_TOKEN=$4
+TENANT_ID=$2
+ACCESS_TOKEN=$3
 
 # Debug logging
 echo "Debug: Arguments received:"
 echo "Debug: SUBSCRIPTION_ID: $SUBSCRIPTION_ID"
-echo "Debug: SERVICE_PRINCIPAL_ID: $SERVICE_PRINCIPAL_ID"
 echo "Debug: TENANT_ID: $TENANT_ID"
 echo "Debug: ACCESS_TOKEN: ***"
-
-# Create a temporary tfvars file with both variables
-cat > terraform.tfvars << EOF
-subscription_id = "$SUBSCRIPTION_ID"
-service_principal_id = "$SERVICE_PRINCIPAL_ID"
-tenant_id = "$TENANT_ID"
-EOF
-
-# Debug logging
-echo "Debug: Contents of terraform.tfvars:"
-cat terraform.tfvars
 
 # Set environment variables for Terraform
 export ARM_ACCESS_TOKEN=$ACCESS_TOKEN

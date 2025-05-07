@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Get subscription ID
-SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+# Use subscription ID from pipeline variable
+SUBSCRIPTION_ID=$(SUBSCRIPTION_ID)
 
 # Import resource group
 echo "Importing resource group..."

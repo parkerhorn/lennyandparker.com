@@ -14,6 +14,15 @@ jobs:
   pool:
     vmImage: 'ubuntu-latest'
   steps:
+  - task: AzureCLI@2
+    displayName: 'Azure Login'
+    inputs:
+      azureSubscription: 'Azure Subscription'
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        az account show
+
   - task: TerraformInstaller@1
     displayName: 'Install Terraform'
     inputs:
@@ -37,6 +46,7 @@ jobs:
       targetType: 'filePath'
       filePath: '$(System.DefaultWorkingDirectory)/infrastructure/capability/import.sh'
       workingDirectory: ${{ parameters.workingDirectory }}
+      arguments: '$(SUBSCRIPTION_ID)'
     continueOnError: true
 
   - task: TerraformTaskV4@4

@@ -21,11 +21,19 @@ jobs:
       scriptType: 'bash'
       scriptLocation: 'inlineScript'
       inlineScript: |
+        # Show account info for debugging
+        echo "Debug: Account info:"
         az account show
+        
         # Store the login credentials for other tasks
+        echo "Debug: Getting access token..."
         az account get-access-token --query accessToken -o tsv > $(Agent.TempDirectory)/access_token.txt
+        
         # Get tenant ID
-        az account show --query tenantId -o tsv > $(Agent.TempDirectory)/tenant_id.txt
+        echo "Debug: Getting tenant ID..."
+        TENANT_ID=$(az account show --query tenantId -o tsv)
+        echo "Debug: Tenant ID: $TENANT_ID"
+        echo "$TENANT_ID" > $(Agent.TempDirectory)/tenant_id.txt
 
   - task: TerraformInstaller@1
     displayName: 'Install Terraform'

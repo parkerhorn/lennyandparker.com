@@ -5,6 +5,10 @@ SUBSCRIPTION_ID=$SUBSCRIPTION_ID
 SERVICE_PRINCIPAL_ID=$SERVICE_PRINCIPAL_ID
 TENANT_ID=$ARM_TENANT_ID
 
+# Debug logging
+echo "Debug: ARM_TENANT_ID from environment: $ARM_TENANT_ID"
+echo "Debug: TENANT_ID variable: $TENANT_ID"
+
 # Create a temporary tfvars file with both variables
 cat > terraform.tfvars << EOF
 subscription_id = "$SUBSCRIPTION_ID"
@@ -12,9 +16,17 @@ service_principal_id = "$SERVICE_PRINCIPAL_ID"
 tenant_id = "$TENANT_ID"
 EOF
 
+# Debug logging
+echo "Debug: Contents of terraform.tfvars:"
+cat terraform.tfvars
+
 # Set environment variables for Terraform
 export ARM_ACCESS_TOKEN=$ARM_ACCESS_TOKEN
 export ARM_TENANT_ID=$ARM_TENANT_ID
+
+# Debug logging
+echo "Debug: Environment variables set:"
+env | grep ARM_
 
 # Import resource group
 echo "Importing resource group..."

@@ -48,10 +48,24 @@ Before running any pipelines, you need to manually create the capability infrast
      - Check "Keep this value secret"
    - Click "Save"
 
-6. **Deploy Capability Infrastructure**:
+6. **Import Existing Resources**:
    ```bash
+   # Initialize Terraform
    cd capability
    terraform init
+
+   # Import the resource group
+   terraform import azurerm_resource_group.wedding_api_capability_rg /subscriptions/<subscription-id>/resourceGroups/wedding-api-capability-rg
+
+   # Import the storage account
+   terraform import azurerm_storage_account.terraform_state /subscriptions/<subscription-id>/resourceGroups/wedding-api-capability-rg/providers/Microsoft.Storage/storageAccounts/weddingapistate
+
+   # Import the storage container
+   terraform import azurerm_storage_container.terraform_state https://weddingapistate.blob.core.windows.net/tfstate
+   ```
+
+7. **Deploy Capability Infrastructure**:
+   ```bash
    terraform apply -var="service_principal_id=<appId-from-step-4>"
    ```
 

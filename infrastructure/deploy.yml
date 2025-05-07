@@ -31,6 +31,14 @@ jobs:
       backendAzureRmContainerName: 'tfstate'
       backendAzureRmKey: ${{ parameters.stateKey }}
 
+  - task: Bash@3
+    displayName: 'Import Existing Resources'
+    inputs:
+      targetType: 'filePath'
+      filePath: '$(System.DefaultWorkingDirectory)/infrastructure/capability/import.sh'
+      workingDirectory: ${{ parameters.workingDirectory }}
+    continueOnError: true
+
   - task: TerraformTaskV4@4
     displayName: 'Terraform Plan'
     inputs:

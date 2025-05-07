@@ -4,8 +4,9 @@
 SUBSCRIPTION_ID=$SUBSCRIPTION_ID
 SERVICE_PRINCIPAL_ID=$SERVICE_PRINCIPAL_ID
 
-# Create a temporary tfvars file with the service principal ID
+# Create a temporary tfvars file with both variables
 cat > terraform.tfvars << EOF
+subscription_id = "$SUBSCRIPTION_ID"
 service_principal_id = "$SERVICE_PRINCIPAL_ID"
 EOF
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Use subscription ID from pipeline variable
-SUBSCRIPTION_ID=$(SUBSCRIPTION_ID)
+# Get subscription ID from first argument
+SUBSCRIPTION_ID=$1
 
 # Import resource group
 echo "Importing resource group..."

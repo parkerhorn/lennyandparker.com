@@ -12,14 +12,4 @@ extends:
   parameters:
     workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/capability'
     stateKey: 'capability.tfstate'
-    varFile: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)"'
-
-pool:
-  vmImage: 'ubuntu-latest'
-
-steps:
-- template: deploy.yml
-  parameters:
-    workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/capability'
-    stateKey: 'capability.tfstate'
-    varFile: '' 
+    varFile: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)"' 

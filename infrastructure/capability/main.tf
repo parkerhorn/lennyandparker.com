@@ -7,7 +7,7 @@ terraform {
   }
   backend "azurerm" {
     resource_group_name  = "wedding-api-capability-rg"
-    storage_account_name = "weddingapistate2024"
+    storage_account_name = "weddingapistate"
     container_name       = "tfstate"
     key                  = "capability.tfstate"
   }
@@ -30,23 +30,15 @@ locals {
   }
 }
 
-# Resource Group
-resource "azurerm_resource_group" "wedding_api_capability_rg" {
-  name     = "wedding-api-capability-rg"
-  location = var.location
-  tags     = local.tags
-
-  lifecycle {
-    prevent_destroy = true
-  }
+data "azurerm_resource_group" "wedding_api_capability_rg" {
+  name = "wedding-api-capability-rg"
 }
-
 
 # App Service Plan
 resource "azurerm_service_plan" "wedding_api_asp" {
   name                = "wedding-api-asp"
-  resource_group_name = azurerm_resource_group.wedding_api_capability_rg.name
-  location            = azurerm_resource_group.wedding_api_capability_rg.location
+  resource_group_name = data.azurerm_resource_group.wedding_api_capability_rg.name
+  location            = data.azurerm_resource_group.wedding_api_capability_rg.location
   os_type            = "Linux"
   sku_name           = "B1"
   tags               = local.tags
@@ -65,8 +57,8 @@ resource "random_password" "sql_admin_password" {
 # SQL Server
 resource "azurerm_mssql_server" "wedding_sql_server" {
   name                         = "wedding-api-sql-server"
-  resource_group_name          = azurerm_resource_group.wedding_api_capability_rg.name
-  location                     = azurerm_resource_group.wedding_api_capability_rg.location
+  resource_group_name          = data.azurerm_resource_group.wedding_api_capability_rg.name
+  location                     = data.azurerm_resource_group.wedding_api_capability_rg.location
   version                      = "12.0"
   administrator_login          = "weddingadmin"
   administrator_login_password = random_password.sql_admin_password.result
@@ -76,8 +68,8 @@ resource "azurerm_mssql_server" "wedding_sql_server" {
 # Key Vault
 resource "azurerm_key_vault" "wedding_api_kv" {
   name                        = "wedding-api-kv"
-  location                    = azurerm_resource_group.wedding_api_capability_rg.location
-  resource_group_name         = azurerm_resource_group.wedding_api_capability_rg.name
+  location                    = data.azurerm_resource_group.wedding_api_capability_rg.location
+  resource_group_name         = data.azurerm_resource_group.wedding_api_capability_rg.name
   enabled_for_disk_encryption = true
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
@@ -120,8 +112,8 @@ resource "azurerm_key_vault_secret" "sql_admin_password" {
 # App Configuration
 resource "azurerm_app_configuration" "wedding_api_app_config" {
   name                = "wedding-api-app-config"
-  resource_group_name = azurerm_resource_group.wedding_api_capability_rg.name
-  location            = azurerm_resource_group.wedding_api_capability_rg.location
+  resource_group_name = data.azurerm_resource_group.wedding_api_capability_rg.name
+  location            = data.azurerm_resource_group.wedding_api_capability_rg.location
   sku                 = "free"
   tags                = local.tags
 } 

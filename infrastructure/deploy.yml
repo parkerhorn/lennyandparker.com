@@ -35,11 +35,11 @@ variables:
     value: $(SERVICE_PRINCIPAL_ID)
 
 stages:
-- stage: Plan
-  displayName: 'Terraform Plan'
+- stage: Deploy
+  displayName: 'Deploy Infrastructure'
   jobs:
-  - job: Plan
-    displayName: 'Plan'
+  - job: Deploy
+    displayName: 'Deploy'
     pool:
       vmImage: 'ubuntu-latest'
     steps:
@@ -68,33 +68,7 @@ stages:
         workingDirectory: ${{ parameters.workingDirectory }}
         environmentServiceNameAzureRM: ${{ parameters.backendServiceArm }}
         commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)"'
-
-- stage: Apply
-  displayName: 'Terraform Apply'
-  dependsOn: Plan
-  condition: succeeded()
-  jobs:
-  - job: Apply
-    displayName: 'Apply'
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-    - task: TerraformInstaller@1
-      displayName: 'Install Terraform'
-      inputs:
-        terraformVersion: 'latest'
-
-    - task: TerraformTaskV4@4
-      displayName: 'Terraform Init'
-      inputs:
-        provider: 'azurerm'
-        command: 'init'
-        workingDirectory: ${{ parameters.workingDirectory }}
-        backendServiceArm: ${{ parameters.backendServiceArm }}
-        backendAzureRmResourceGroupName: ${{ parameters.backendAzureRmResourceGroupName }}
-        backendAzureRmStorageAccountName: ${{ parameters.backendAzureRmStorageAccountName }}
-        backendAzureRmContainerName: ${{ parameters.backendAzureRmContainerName }}
-        backendAzureRmKey: ${{ parameters.backendAzureRmKey }}
+        publishPlanResults: 'tfplan'
 
     - task: TerraformTaskV4@4
       displayName: 'Terraform Apply'

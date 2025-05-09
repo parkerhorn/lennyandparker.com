@@ -10,33 +10,18 @@ parameters:
   - name: workingDirectory
     type: string
     default: '$(System.DefaultWorkingDirectory)/infrastructure/capability'
-  - name: backendServiceArm
-    type: string
-    default: 'Azure Subscription'
-  - name: backendAzureRmResourceGroupName
-    type: string
-    default: 'wedding-api-capability-rg'
-  - name: backendAzureRmStorageAccountName
-    type: string
-    default: 'weddingapistate'
-  - name: backendAzureRmContainerName
-    type: string
-    default: 'tfstate'
-  - name: backendAzureRmKey
-    type: string
-    default: 'terraform.tfstate'
 
 variables:
   - name: TF_WORKSPACE
     value: 'default'
   - name: TF_VAR_location
-    value: 'eastus'
+    value: 'westus'
   - name: TF_VAR_service_principal_id
     value: $(SERVICE_PRINCIPAL_ID)
 
 stages:
-- stage: Deploy
-  displayName: 'Deploy Infrastructure'
+- stage: Deploy Capability Level Infrastructure
+  displayName: 'Deploy Capability Level Infrastructure'
   jobs:
   - job: Deploy
     displayName: 'Deploy'
@@ -54,11 +39,11 @@ stages:
         provider: 'azurerm'
         command: 'init'
         workingDirectory: ${{ parameters.workingDirectory }}
-        backendServiceArm: ${{ parameters.backendServiceArm }}
-        backendAzureRmResourceGroupName: ${{ parameters.backendAzureRmResourceGroupName }}
-        backendAzureRmStorageAccountName: ${{ parameters.backendAzureRmStorageAccountName }}
-        backendAzureRmContainerName: ${{ parameters.backendAzureRmContainerName }}
-        backendAzureRmKey: ${{ parameters.backendAzureRmKey }}
+        backendServiceArm: 'Azure Subscription'
+        backendAzureRmResourceGroupName: 'wedding-api-capability-rg'
+        backendAzureRmStorageAccountName: 'weddingapistate'
+        backendAzureRmContainerName: 'tfstate'
+        backendAzureRmKey: 'capability.tfstate'
 
     - task: TerraformTaskV4@4
       displayName: 'Terraform Plan'
@@ -66,7 +51,7 @@ stages:
         provider: 'azurerm'
         command: 'plan'
         workingDirectory: ${{ parameters.workingDirectory }}
-        environmentServiceNameAzureRM: ${{ parameters.backendServiceArm }}
+        environmentServiceNameAzureRM: 'Azure Subscription'
         commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)"'
         publishPlanResults: 'tfplan'
 
@@ -76,5 +61,5 @@ stages:
         provider: 'azurerm'
         command: 'apply'
         workingDirectory: ${{ parameters.workingDirectory }}
-        environmentServiceNameAzureRM: ${{ parameters.backendServiceArm }}
+        environmentServiceNameAzureRM: 'Azure Subscription'
         commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)"' 

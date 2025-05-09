@@ -67,6 +67,7 @@ stages:
         command: 'plan'
         workingDirectory: ${{ parameters.workingDirectory }}
         environmentServiceNameAzureRM: ${{ parameters.backendServiceArm }}
+        commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)"'
 
 - stage: Apply
   displayName: 'Terraform Apply'
@@ -101,4 +102,5 @@ stages:
         provider: 'azurerm'
         command: 'apply'
         workingDirectory: ${{ parameters.workingDirectory }}
-        environmentServiceNameAzureRM: ${{ parameters.backendServiceArm }} 
+        environmentServiceNameAzureRM: ${{ parameters.backendServiceArm }}
+        commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)"' 

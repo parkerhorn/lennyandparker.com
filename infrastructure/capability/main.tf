@@ -66,18 +66,9 @@ resource "azurerm_mssql_server" "wedding_sql_server" {
   tags                        = local.tags
 }
 
-# SQL Database
-resource "azurerm_mssql_database" "wedding_db" {
-  name           = "wedding-api-db"
-  server_id      = azurerm_mssql_server.wedding_sql_server.id
-  sku_name       = "Basic"
-  max_size_gb    = 2
-  tags           = local.tags
-}
-
 # Key Vault
 resource "azurerm_key_vault" "wedding_api_kv" {
-  name                        = "wedding-api-kv"
+  name                        = "lennyandparkerhorn-wedding-api-kv"
   location                    = data.azurerm_resource_group.wedding_api_capability_rg.location
   resource_group_name         = data.azurerm_resource_group.wedding_api_capability_rg.name
   enabled_for_disk_encryption = true

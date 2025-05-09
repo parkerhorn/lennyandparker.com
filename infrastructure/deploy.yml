@@ -23,7 +23,7 @@ variables:
     value: $(SERVICE_PRINCIPAL_ID)
 
 stages:
-- stage: Deploy Infrastructure
+- stage: Deploy_Infrastructure
   displayName: 'Deploy Infrastructure'
   jobs:
   - job: Deploy

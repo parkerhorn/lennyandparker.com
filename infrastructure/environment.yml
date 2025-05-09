@@ -19,7 +19,7 @@ parameters:
     type: string
     default: '$(System.DefaultWorkingDirectory)/infrastructure/environment'
 
-${{ if eq(variables['Build.SourceBranch'], 'refs/heads/develop') }}:
+${{ if ne(variables['Build.SourceBranch'], 'refs/heads/main') }}:
   extends:
     template: deploy.yml
     parameters:

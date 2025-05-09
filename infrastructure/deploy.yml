@@ -37,7 +37,6 @@ variables:
 stages:
 - stage: Plan
   displayName: 'Terraform Plan'
-  dependsOn: Import
   jobs:
   - job: Plan
     displayName: 'Plan'

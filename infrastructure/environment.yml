@@ -19,14 +19,6 @@ parameters:
     type: string
     default: '$(System.DefaultWorkingDirectory)/infrastructure/environment'
 
-variables:
-  - name: TF_WORKSPACE
-    value: 'default'
-  - name: TF_VAR_location
-    value: 'westus'
-  - name: TF_VAR_service_principal_id
-    value: $(SERVICE_PRINCIPAL_ID)
-
 ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/develop') }}:
   extends:
     template: deploy.yml

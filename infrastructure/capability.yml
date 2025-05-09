@@ -12,14 +12,6 @@ parameters:
     type: string
     default: '$(System.DefaultWorkingDirectory)/infrastructure/capability'
 
-variables:
-  - name: TF_WORKSPACE
-    value: 'default'
-  - name: TF_VAR_location
-    value: 'westus'
-  - name: TF_VAR_service_principal_id
-    value: $(SERVICE_PRINCIPAL_ID)
-
 extends:
   template: deploy.yml
   parameters:

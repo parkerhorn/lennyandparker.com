@@ -35,6 +35,10 @@ resource "azurerm_resource_group" "wedding_api_capability_rg" {
   name     = "wedding-api-capability-rg"
   location = var.location
   tags     = local.tags
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 # Storage Account for Terraform State
@@ -63,6 +67,10 @@ resource "azurerm_storage_account" "terraform_state" {
   tags = merge(local.tags, {
     Purpose = "TerraformState"
   })
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 # Blob Container for Terraform State
@@ -70,6 +78,10 @@ resource "azurerm_storage_container" "terraform_state" {
   name                  = "tfstate"
   storage_account_name  = azurerm_storage_account.terraform_state.name
   container_access_type = "private"
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 # App Service Plan

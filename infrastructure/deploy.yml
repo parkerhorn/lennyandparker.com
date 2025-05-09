@@ -35,8 +35,43 @@ variables:
     value: $(SERVICE_PRINCIPAL_ID)
 
 stages:
+- stage: InitialSetup
+  displayName: 'Initial Infrastructure Setup'
+  jobs:
+  - job: Setup
+    displayName: 'Setup'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: TerraformInstaller@1
+      displayName: 'Install Terraform'
+      inputs:
+        terraformVersion: 'latest'
+
+    - task: TerraformTaskV4@4
+      displayName: 'Terraform Init'
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: ${{ parameters.workingDirectory }}
+        backendServiceArm: ${{ parameters.backendServiceArm }}
+        backendAzureRmResourceGroupName: ${{ parameters.backendAzureRmResourceGroupName }}
+        backendAzureRmStorageAccountName: ${{ parameters.backendAzureRmStorageAccountName }}
+        backendAzureRmContainerName: ${{ parameters.backendAzureRmContainerName }}
+        backendAzureRmKey: ${{ parameters.backendAzureRmKey }}
+
+    - task: TerraformTaskV4@4
+      displayName: 'Terraform Apply'
+      inputs:
+        provider: 'azurerm'
+        command: 'apply'
+        workingDirectory: ${{ parameters.workingDirectory }}
+        environmentServiceNameAzureRM: ${{ parameters.backendServiceArm }}
+        commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)" -target=azurerm_resource_group.wedding_api_capability_rg -target=azurerm_storage_account.terraform_state -target=azurerm_storage_container.terraform_state'
+
 - stage: Plan
   displayName: 'Terraform Plan'
+  dependsOn: InitialSetup
   jobs:
   - job: Plan
     displayName: 'Plan'

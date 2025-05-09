@@ -13,6 +13,10 @@ jobs:
 - job: Deploy
   pool:
     vmImage: 'ubuntu-latest'
+  variables:
+    TF_VAR_subscription_id: ''
+    TF_VAR_tenant_id: ''
+    TF_VAR_service_principal_id: ''
   steps:
   - task: AzureCLI@2
     displayName: 'Azure Login'
@@ -29,7 +33,19 @@ jobs:
         echo "Debug: Getting subscription ID..."
         SUBSCRIPTION_ID=$(az account show --query id -o tsv)
         echo "Debug: Subscription ID: $SUBSCRIPTION_ID"
-        echo "##vso[task.setvariable variable=SUBSCRIPTION_ID]$SUBSCRIPTION_ID"
+        echo "##vso[task.setvariable variable=TF_VAR_subscription_id]$SUBSCRIPTION_ID"
+        
+        # Get tenant ID
+        echo "Debug: Getting tenant ID..."
+        TENANT_ID=$(az account show --query tenantId -o tsv)
+        echo "Debug: Tenant ID: $TENANT_ID"
+        echo "##vso[task.setvariable variable=TF_VAR_tenant_id]$TENANT_ID"
+        
+        # Get service principal ID
+        echo "Debug: Getting service principal ID..."
+        SP_ID=$(az account show --query user.name -o tsv)
+        echo "Debug: Service Principal ID: $SP_ID"
+        echo "##vso[task.setvariable variable=TF_VAR_service_principal_id]$SP_ID"
 
   - task: TerraformInstaller@1
     displayName: 'Install Terraform'
@@ -55,7 +71,8 @@ jobs:
       workingDirectory: ${{ parameters.workingDirectory }}
       script: |
         echo "Importing resource group..."
-        /opt/hostedtoolcache/terraform/1.11.3/x64/terraform import azurerm_resource_group.wedding_api_capability_rg /subscriptions/$(SUBSCRIPTION_ID)/resourceGroups/wedding-api-capability-rg
+        /opt/hostedtoolcache/terraform/1.11.3/x64/terraform import \
+          azurerm_resource_group.wedding_api_capability_rg /subscriptions/$(TF_VAR_subscription_id)/resourceGroups/wedding-api-capability-rg
     continueOnError: true
 
   - task: Bash@3
@@ -65,7 +82,8 @@ jobs:
       workingDirectory: ${{ parameters.workingDirectory }}
       script: |
         echo "Importing storage account..."
-        /opt/hostedtoolcache/terraform/1.11.3/x64/terraform import azurerm_storage_account.terraform_state /subscriptions/$(SUBSCRIPTION_ID)/resourceGroups/wedding-api-capability-rg/providers/Microsoft.Storage/storageAccounts/weddingapistate
+        /opt/hostedtoolcache/terraform/1.11.3/x64/terraform import \
+          azurerm_storage_account.terraform_state /subscriptions/$(TF_VAR_subscription_id)/resourceGroups/wedding-api-capability-rg/providers/Microsoft.Storage/storageAccounts/weddingapistate
     continueOnError: true
 
   - task: Bash@3
@@ -75,7 +93,8 @@ jobs:
       workingDirectory: ${{ parameters.workingDirectory }}
       script: |
         echo "Importing storage container..."
-        /opt/hostedtoolcache/terraform/1.11.3/x64/terraform import azurerm_storage_container.terraform_state https://weddingapistate.blob.core.windows.net/tfstate
+        /opt/hostedtoolcache/terraform/1.11.3/x64/terraform import \
+          azurerm_storage_container.terraform_state https://weddingapistate.blob.core.windows.net/tfstate
     continueOnError: true
 
   - task: TerraformTaskV4@4

@@ -40,7 +40,7 @@ resource "azurerm_service_plan" "wedding_api_asp" {
   resource_group_name = data.azurerm_resource_group.wedding_api_capability_rg.name
   location            = data.azurerm_resource_group.wedding_api_capability_rg.location
   os_type            = "Linux"
-  sku_name           = "B1"
+  sku_name           = "F1"
   tags               = local.tags
 }
 
@@ -54,7 +54,7 @@ resource "random_password" "sql_admin_password" {
   min_special      = 1
 }
 
-# SQL Server
+# SQL Server - Using Basic tier
 resource "azurerm_mssql_server" "wedding_sql_server" {
   name                         = "wedding-api-sql-server"
   resource_group_name          = data.azurerm_resource_group.wedding_api_capability_rg.name
@@ -62,10 +62,20 @@ resource "azurerm_mssql_server" "wedding_sql_server" {
   version                      = "12.0"
   administrator_login          = "weddingadmin"
   administrator_login_password = random_password.sql_admin_password.result
-  tags                         = local.tags
+  minimum_tls_version         = "1.2"
+  tags                        = local.tags
 }
 
-# Key Vault
+# SQL Database - Using Basic tier (5 DTU)
+resource "azurerm_mssql_database" "wedding_db" {
+  name           = "wedding-api-db"
+  server_id      = azurerm_mssql_server.wedding_sql_server.id
+  sku_name       = "Basic"
+  max_size_gb    = 2
+  tags           = local.tags
+}
+
+# Key Vault - Using standard tier (free tier not available)
 resource "azurerm_key_vault" "wedding_api_kv" {
   name                        = "wedding-api-kv"
   location                    = data.azurerm_resource_group.wedding_api_capability_rg.location
@@ -74,9 +84,9 @@ resource "azurerm_key_vault" "wedding_api_kv" {
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
   purge_protection_enabled    = false
-  sku_name                   = "standard"
+  sku_name                   = "standard"  # Only standard available
+  tags                       = local.tags
 
-  # Access policy for current user
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
     object_id = data.azurerm_client_config.current.object_id
@@ -89,7 +99,6 @@ resource "azurerm_key_vault" "wedding_api_kv" {
     ]
   }
 
-  # Access policy for service principal
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
     object_id = var.service_principal_id
@@ -99,8 +108,6 @@ resource "azurerm_key_vault" "wedding_api_kv" {
       "List"
     ]
   }
-
-  tags = local.tags
 }
 
 resource "azurerm_key_vault_secret" "sql_admin_password" {
@@ -109,11 +116,11 @@ resource "azurerm_key_vault_secret" "sql_admin_password" {
   key_vault_id = azurerm_key_vault.wedding_api_kv.id
 }
 
-# App Configuration
+# App Configuration - Using free tier
 resource "azurerm_app_configuration" "wedding_api_app_config" {
   name                = "wedding-api-app-config"
   resource_group_name = data.azurerm_resource_group.wedding_api_capability_rg.name
   location            = data.azurerm_resource_group.wedding_api_capability_rg.location
-  sku                 = "free"
-  tags                = local.tags
+  sku                = "free"
+  tags               = local.tags
 } 

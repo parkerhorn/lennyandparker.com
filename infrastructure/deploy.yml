@@ -18,7 +18,7 @@ variables:
   - name: TF_WORKSPACE
     value: 'default'
   - name: TF_VAR_location
-    value: 'eastus2'
+    value: 'centralus'
   - name: TF_VAR_service_principal_id
     value: $(SERVICE_PRINCIPAL_ID)
 

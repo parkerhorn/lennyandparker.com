@@ -41,48 +41,6 @@ resource "azurerm_resource_group" "wedding_api_capability_rg" {
   }
 }
 
-# Storage Account for Terraform State
-resource "azurerm_storage_account" "terraform_state" {
-  name                     = "weddingapistate2024"
-  resource_group_name      = azurerm_resource_group.wedding_api_capability_rg.name
-  location                 = azurerm_resource_group.wedding_api_capability_rg.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  min_tls_version         = "TLS1_2"
-  
-  blob_properties {
-    delete_retention_policy {
-      days = 7
-    }
-    versioning_enabled = true
-    change_feed_enabled = true
-    restore_policy {
-      days = 7
-    }
-    container_delete_retention_policy {
-      days = 7
-    }
-  }
-
-  tags = merge(local.tags, {
-    Purpose = "TerraformState"
-  })
-
-  lifecycle {
-    prevent_destroy = true
-  }
-}
-
-# Blob Container for Terraform State
-resource "azurerm_storage_container" "terraform_state" {
-  name                  = "tfstate"
-  storage_account_name  = azurerm_storage_account.terraform_state.name
-  container_access_type = "private"
-
-  lifecycle {
-    prevent_destroy = true
-  }
-}
 
 # App Service Plan
 resource "azurerm_service_plan" "wedding_api_asp" {

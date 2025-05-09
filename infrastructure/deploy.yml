@@ -35,58 +35,6 @@ variables:
     value: $(SERVICE_PRINCIPAL_ID)
 
 stages:
-- stage: Import
-  displayName: 'Import Existing Resources'
-  jobs:
-  - job: Import
-    displayName: 'Import'
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-    - task: TerraformInstaller@1
-      displayName: 'Install Terraform'
-      inputs:
-        terraformVersion: 'latest'
-
-    - task: TerraformTaskV4@4
-      displayName: 'Terraform Init'
-      inputs:
-        provider: 'azurerm'
-        command: 'init'
-        workingDirectory: ${{ parameters.workingDirectory }}
-        backendServiceArm: ${{ parameters.backendServiceArm }}
-        backendAzureRmResourceGroupName: ${{ parameters.backendAzureRmResourceGroupName }}
-        backendAzureRmStorageAccountName: ${{ parameters.backendAzureRmStorageAccountName }}
-        backendAzureRmContainerName: ${{ parameters.backendAzureRmContainerName }}
-        backendAzureRmKey: ${{ parameters.backendAzureRmKey }}
-
-    - task: TerraformTaskV4@4
-      displayName: 'Import Resource Group'
-      inputs:
-        provider: 'azurerm'
-        command: 'custom'
-        workingDirectory: ${{ parameters.workingDirectory }}
-        environmentServiceNameAzureRM: ${{ parameters.backendServiceArm }}
-        customCommand: 'import azurerm_resource_group.wedding_api_capability_rg /subscriptions/$(ARM_SUBSCRIPTION_ID)/resourceGroups/wedding-api-capability-rg'
-
-    - task: TerraformTaskV4@4
-      displayName: 'Import Storage Account'
-      inputs:
-        provider: 'azurerm'
-        command: 'custom'
-        workingDirectory: ${{ parameters.workingDirectory }}
-        environmentServiceNameAzureRM: ${{ parameters.backendServiceArm }}
-        customCommand: 'import azurerm_storage_account.terraform_state /subscriptions/$(ARM_SUBSCRIPTION_ID)/resourceGroups/wedding-api-capability-rg/providers/Microsoft.Storage/storageAccounts/weddingapistate'
-
-    - task: TerraformTaskV4@4
-      displayName: 'Import Storage Container'
-      inputs:
-        provider: 'azurerm'
-        command: 'custom'
-        workingDirectory: ${{ parameters.workingDirectory }}
-        environmentServiceNameAzureRM: ${{ parameters.backendServiceArm }}
-        customCommand: 'import azurerm_storage_container.terraform_state https://weddingapistate.blob.core.windows.net/tfstate'
-
 - stage: Plan
   displayName: 'Terraform Plan'
   dependsOn: Import

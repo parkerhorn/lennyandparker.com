@@ -84,7 +84,7 @@ resource "azurerm_key_vault" "wedding_api_kv" {
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
   purge_protection_enabled    = false
-  sku_name                   = "standard"  # Only standard available
+  sku_name                   = "standard"
   tags                       = local.tags
 
   access_policy {

@@ -6,6 +6,7 @@ trigger:
   paths:
     include:
       - infrastructure/environment/**
+      - infrastructure/deploy.yml
 
 parameters:
   - name: environment
@@ -26,33 +27,18 @@ variables:
   - name: TF_VAR_service_principal_id
     value: $(SERVICE_PRINCIPAL_ID)
 
-stages:
-- stage: Deploy_Dev_Environment_Infrastructure
-  displayName: 'Deploy Dev Environment Infrastructure'
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
-  jobs:
-  - job: Deploy
-    displayName: 'Deploy'
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-    - template: deploy.yml
-      parameters:
-        workingDirectory: ${{ parameters.workingDirectory }}
-        backendAzureRmKey: 'environment-dev.tfstate'
-        commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)" -var-file="dev.tfvars"'
+${{ if eq(variables['Build.SourceBranch'], 'refs/heads/develop') }}:
+  extends:
+    template: deploy.yml
+    parameters:
+      workingDirectory: ${{ parameters.workingDirectory }}
+      backendAzureRmKey: 'environment-dev.tfstate'
+      commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)" -var-file="dev.tfvars"'
 
-- stage: Deploy_Prod_Environment_Infrastructure
-  displayName: 'Deploy Prod Environment Infrastructure'
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-  jobs:
-  - job: Deploy
-    displayName: 'Deploy'
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-    - template: deploy.yml
-      parameters:
-        workingDirectory: ${{ parameters.workingDirectory }}
-        backendAzureRmKey: 'environment-prod.tfstate'
-        commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)" -var-file="prod.tfvars"' 
+${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+  extends:
+    template: deploy.yml
+    parameters:
+      workingDirectory: ${{ parameters.workingDirectory }}
+      backendAzureRmKey: 'environment-prod.tfstate'
+      commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)" -var-file="prod.tfvars"' 

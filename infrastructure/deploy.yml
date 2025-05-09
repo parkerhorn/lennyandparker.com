@@ -35,11 +35,11 @@ variables:
     value: $(SERVICE_PRINCIPAL_ID)
 
 stages:
-- stage: InitialSetup
-  displayName: 'Initial Infrastructure Setup'
+- stage: Import
+  displayName: 'Import Existing Resources'
   jobs:
-  - job: Setup
-    displayName: 'Setup'
+  - job: Import
+    displayName: 'Import'
     pool:
       vmImage: 'ubuntu-latest'
     steps:
@@ -61,17 +61,35 @@ stages:
         backendAzureRmKey: ${{ parameters.backendAzureRmKey }}
 
     - task: TerraformTaskV4@4
-      displayName: 'Terraform Apply'
+      displayName: 'Import Resource Group'
       inputs:
         provider: 'azurerm'
-        command: 'apply'
+        command: 'custom'
         workingDirectory: ${{ parameters.workingDirectory }}
         environmentServiceNameAzureRM: ${{ parameters.backendServiceArm }}
-        commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)" -target=azurerm_resource_group.wedding_api_capability_rg -target=azurerm_storage_account.terraform_state -target=azurerm_storage_container.terraform_state'
+        customCommand: 'import azurerm_resource_group.wedding_api_capability_rg /subscriptions/$(ARM_SUBSCRIPTION_ID)/resourceGroups/wedding-api-capability-rg'
+
+    - task: TerraformTaskV4@4
+      displayName: 'Import Storage Account'
+      inputs:
+        provider: 'azurerm'
+        command: 'custom'
+        workingDirectory: ${{ parameters.workingDirectory }}
+        environmentServiceNameAzureRM: ${{ parameters.backendServiceArm }}
+        customCommand: 'import azurerm_storage_account.terraform_state /subscriptions/$(ARM_SUBSCRIPTION_ID)/resourceGroups/wedding-api-capability-rg/providers/Microsoft.Storage/storageAccounts/weddingapistate'
+
+    - task: TerraformTaskV4@4
+      displayName: 'Import Storage Container'
+      inputs:
+        provider: 'azurerm'
+        command: 'custom'
+        workingDirectory: ${{ parameters.workingDirectory }}
+        environmentServiceNameAzureRM: ${{ parameters.backendServiceArm }}
+        customCommand: 'import azurerm_storage_container.terraform_state https://weddingapistate.blob.core.windows.net/tfstate'
 
 - stage: Plan
   displayName: 'Terraform Plan'
-  dependsOn: InitialSetup
+  dependsOn: Import
   jobs:
   - job: Plan
     displayName: 'Plan'

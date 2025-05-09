@@ -7,7 +7,7 @@ terraform {
   }
   backend "azurerm" {
     resource_group_name  = "wedding-api-capability-rg"
-    storage_account_name = "weddingapistate"
+    storage_account_name = "weddingapistate2024"
     container_name       = "tfstate"
     key                  = "capability.tfstate"
   }
@@ -43,7 +43,7 @@ resource "azurerm_resource_group" "wedding_api_capability_rg" {
 
 # Storage Account for Terraform State
 resource "azurerm_storage_account" "terraform_state" {
-  name                     = "weddingapistate"
+  name                     = "weddingapistate2024"
   resource_group_name      = azurerm_resource_group.wedding_api_capability_rg.name
   location                 = azurerm_resource_group.wedding_api_capability_rg.location
   account_tier             = "Standard"

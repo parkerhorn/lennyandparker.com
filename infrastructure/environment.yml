@@ -14,37 +14,45 @@ parameters:
     values:
       - dev
       - prod
+  - name: workingDirectory
+    type: string
+    default: '$(System.DefaultWorkingDirectory)/infrastructure/environment'
 
-pool:
-  vmImage: 'ubuntu-latest'
+variables:
+  - name: TF_WORKSPACE
+    value: 'default'
+  - name: TF_VAR_location
+    value: 'westus'
+  - name: TF_VAR_service_principal_id
+    value: $(SERVICE_PRINCIPAL_ID)
 
 stages:
-- stage: DeployDev
+- stage: Deploy_Dev_Environment_Infrastructure
+  displayName: 'Deploy Dev Environment Infrastructure'
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))
   jobs:
-  - deployment: DeployDevEnvironment
-    environment: dev
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - template: deploy.yml
-            parameters:
-              workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/environment'
-              stateKey: 'environment-dev.tfstate'
-              varFile: '-var-file="dev.tfvars"'
+  - job: Deploy
+    displayName: 'Deploy'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - template: deploy.yml
+      parameters:
+        workingDirectory: ${{ parameters.workingDirectory }}
+        backendAzureRmKey: 'environment-dev.tfstate'
+        commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)" -var-file="dev.tfvars"'
 
-- stage: DeployProd
+- stage: Deploy_Prod_Environment_Infrastructure
+  displayName: 'Deploy Prod Environment Infrastructure'
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
   jobs:
-  - deployment: DeployProdEnvironment
-    environment: prod
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - template: deploy.yml
-            parameters:
-              workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/environment'
-              stateKey: 'environment-prod.tfstate'
-              varFile: '-var-file="prod.tfvars"' 
+  - job: Deploy
+    displayName: 'Deploy'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - template: deploy.yml
+      parameters:
+        workingDirectory: ${{ parameters.workingDirectory }}
+        backendAzureRmKey: 'environment-prod.tfstate'
+        commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)" -var-file="prod.tfvars"' 

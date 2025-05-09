@@ -11,4 +11,32 @@ extends:
   template: deploy.yml
   parameters:
     workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/capability'
-    backendAzureRmKey: 'capability.tfstate' 
+    backendAzureRmKey: 'capability.tfstate'
+
+parameters:
+  - name: workingDirectory
+    type: string
+    default: '$(System.DefaultWorkingDirectory)/infrastructure/capability'
+
+variables:
+  - name: TF_WORKSPACE
+    value: 'default'
+  - name: TF_VAR_location
+    value: 'westus'
+  - name: TF_VAR_service_principal_id
+    value: $(SERVICE_PRINCIPAL_ID)
+
+stages:
+- stage: Deploy_Capability_Infrastructure
+  displayName: 'Deploy Capability Infrastructure'
+  jobs:
+  - job: Deploy
+    displayName: 'Deploy'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - template: deploy.yml
+      parameters:
+        workingDirectory: ${{ parameters.workingDirectory }}
+        backendAzureRmKey: 'capability.tfstate'
+        commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)"' 

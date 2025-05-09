@@ -9,7 +9,10 @@ trigger:
 parameters:
   - name: workingDirectory
     type: string
-    default: '$(System.DefaultWorkingDirectory)/infrastructure/capability'
+  - name: backendAzureRmKey
+    type: string
+  - name: commandOptions
+    type: string
 
 variables:
   - name: TF_WORKSPACE
@@ -20,8 +23,8 @@ variables:
     value: $(SERVICE_PRINCIPAL_ID)
 
 stages:
-- stage: Deploy Capability Level Infrastructure
-  displayName: 'Deploy Capability Level Infrastructure'
+- stage: Deploy Infrastructure
+  displayName: 'Deploy Infrastructure'
   jobs:
   - job: Deploy
     displayName: 'Deploy'
@@ -43,7 +46,7 @@ stages:
         backendAzureRmResourceGroupName: 'wedding-api-capability-rg'
         backendAzureRmStorageAccountName: 'weddingapistate'
         backendAzureRmContainerName: 'tfstate'
-        backendAzureRmKey: 'capability.tfstate'
+        backendAzureRmKey: ${{ parameters.backendAzureRmKey }}
 
     - task: TerraformTaskV4@4
       displayName: 'Terraform Plan'
@@ -52,7 +55,7 @@ stages:
         command: 'plan'
         workingDirectory: ${{ parameters.workingDirectory }}
         environmentServiceNameAzureRM: 'Azure Subscription'
-        commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)"'
+        commandOptions: ${{ parameters.commandOptions }}
         publishPlanResults: 'tfplan'
 
     - task: TerraformTaskV4@4
@@ -62,4 +65,4 @@ stages:
         command: 'apply'
         workingDirectory: ${{ parameters.workingDirectory }}
         environmentServiceNameAzureRM: 'Azure Subscription'
-        commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)"' 
+        commandOptions: ${{ parameters.commandOptions }} 

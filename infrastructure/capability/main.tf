@@ -36,7 +36,7 @@ data "azurerm_resource_group" "wedding_api_capability_rg" {
 
 # App Service Plan
 resource "azurerm_service_plan" "wedding_api_asp" {
-  name                = "wedding-api-asp"
+  name                = "wedding-api-service-plan"
   resource_group_name = data.azurerm_resource_group.wedding_api_capability_rg.name
   location            = data.azurerm_resource_group.wedding_api_capability_rg.location
   os_type            = "Linux"
@@ -54,7 +54,7 @@ resource "random_password" "sql_admin_password" {
   min_special      = 1
 }
 
-# SQL Server - Using Basic tier
+# SQL Server
 resource "azurerm_mssql_server" "wedding_sql_server" {
   name                         = "wedding-api-sql-server"
   resource_group_name          = data.azurerm_resource_group.wedding_api_capability_rg.name
@@ -66,7 +66,7 @@ resource "azurerm_mssql_server" "wedding_sql_server" {
   tags                        = local.tags
 }
 
-# SQL Database - Using Basic tier (5 DTU)
+# SQL Database
 resource "azurerm_mssql_database" "wedding_db" {
   name           = "wedding-api-db"
   server_id      = azurerm_mssql_server.wedding_sql_server.id
@@ -75,7 +75,7 @@ resource "azurerm_mssql_database" "wedding_db" {
   tags           = local.tags
 }
 
-# Key Vault - Using standard tier (free tier not available)
+# Key Vault
 resource "azurerm_key_vault" "wedding_api_kv" {
   name                        = "wedding-api-kv"
   location                    = data.azurerm_resource_group.wedding_api_capability_rg.location

@@ -1,3 +1,23 @@
+parameters:
+  - name: workingDirectory
+    type: string
+    default: '$(System.DefaultWorkingDirectory)/infrastructure/capability'
+  - name: backendServiceArm
+    type: string
+    default: 'Azure Subscription'
+  - name: backendAzureRmResourceGroupName
+    type: string
+    default: 'wedding-api-capability-rg'
+  - name: backendAzureRmStorageAccountName
+    type: string
+    default: 'weddingapistate'
+  - name: backendAzureRmContainerName
+    type: string
+    default: 'tfstate'
+  - name: backendAzureRmKey
+    type: string
+    default: 'terraform.tfstate'
+
 trigger:
   branches:
     include:
@@ -5,9 +25,6 @@ trigger:
   paths:
     include:
     - infrastructure/**
-
-pool:
-  vmImage: 'ubuntu-latest'
 
 variables:
   - group: terraform-variables
@@ -24,6 +41,8 @@ stages:
   jobs:
   - job: Plan
     displayName: 'Plan'
+    pool:
+      vmImage: 'ubuntu-latest'
     steps:
     - task: TerraformInstaller@1
       displayName: 'Install Terraform'
@@ -35,20 +54,20 @@ stages:
       inputs:
         provider: 'azurerm'
         command: 'init'
-        workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/capability'
-        backendServiceArm: 'Azure Subscription'
-        backendAzureRmResourceGroupName: 'wedding-api-capability-rg'
-        backendAzureRmStorageAccountName: 'weddingapistate'
-        backendAzureRmContainerName: 'tfstate'
-        backendAzureRmKey: 'terraform.tfstate'
+        workingDirectory: ${{ parameters.workingDirectory }}
+        backendServiceArm: ${{ parameters.backendServiceArm }}
+        backendAzureRmResourceGroupName: ${{ parameters.backendAzureRmResourceGroupName }}
+        backendAzureRmStorageAccountName: ${{ parameters.backendAzureRmStorageAccountName }}
+        backendAzureRmContainerName: ${{ parameters.backendAzureRmContainerName }}
+        backendAzureRmKey: ${{ parameters.backendAzureRmKey }}
 
     - task: TerraformTaskV4@4
       displayName: 'Terraform Plan'
       inputs:
         provider: 'azurerm'
         command: 'plan'
-        workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/capability'
-        environmentServiceNameAzureRM: 'Azure Subscription'
+        workingDirectory: ${{ parameters.workingDirectory }}
+        environmentServiceNameAzureRM: ${{ parameters.backendServiceArm }}
 
 - stage: Apply
   displayName: 'Terraform Apply'
@@ -58,6 +77,8 @@ stages:
   - deployment: Apply
     displayName: 'Apply'
     environment: 'production'
+    pool:
+      vmImage: 'ubuntu-latest'
     strategy:
       runOnce:
         deploy:
@@ -72,17 +93,17 @@ stages:
             inputs:
               provider: 'azurerm'
               command: 'init'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/capability'
-              backendServiceArm: 'Azure Subscription'
-              backendAzureRmResourceGroupName: 'wedding-api-capability-rg'
-              backendAzureRmStorageAccountName: 'weddingapistate'
-              backendAzureRmContainerName: 'tfstate'
-              backendAzureRmKey: 'terraform.tfstate'
+              workingDirectory: ${{ parameters.workingDirectory }}
+              backendServiceArm: ${{ parameters.backendServiceArm }}
+              backendAzureRmResourceGroupName: ${{ parameters.backendAzureRmResourceGroupName }}
+              backendAzureRmStorageAccountName: ${{ parameters.backendAzureRmStorageAccountName }}
+              backendAzureRmContainerName: ${{ parameters.backendAzureRmContainerName }}
+              backendAzureRmKey: ${{ parameters.backendAzureRmKey }}
 
           - task: TerraformTaskV4@4
             displayName: 'Terraform Apply'
             inputs:
               provider: 'azurerm'
               command: 'apply'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/capability'
-              environmentServiceNameAzureRM: 'Azure Subscription' 
+              workingDirectory: ${{ parameters.workingDirectory }}
+              environmentServiceNameAzureRM: ${{ parameters.backendServiceArm }} 

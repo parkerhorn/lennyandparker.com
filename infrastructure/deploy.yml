@@ -1,3 +1,11 @@
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - infrastructure/**
+
 parameters:
   - name: workingDirectory
     type: string
@@ -18,16 +26,7 @@ parameters:
     type: string
     default: 'terraform.tfstate'
 
-trigger:
-  branches:
-    include:
-    - main
-  paths:
-    include:
-    - infrastructure/**
-
 variables:
-  - group: terraform-variables
   - name: TF_WORKSPACE
     value: 'default'
   - name: TF_VAR_location

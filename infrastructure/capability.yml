@@ -19,5 +19,5 @@ stages:
     parameters:
       jobDisplayName: 'Terraform Deploy Capability'
       workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/capability'
-      backendAzureRmKey: 'infra.tfstate'
+      backendAzureRmKey: 'capability.tfstate'
       commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)"' 

@@ -7,7 +7,7 @@ terraform {
   }
   backend "azurerm" {
     resource_group_name  = "wedding-api-capability-rg"
-    storage_account_name = "wedding-api-state-storage"
+    storage_account_name = "weddingapistate"
     container_name      = "tfstate"
     key                 = "environment-${var.environment}.tfstate"
   }

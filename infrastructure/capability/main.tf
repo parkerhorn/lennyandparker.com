@@ -68,7 +68,7 @@ resource "azurerm_mssql_server" "wedding_sql_server" {
 
 # Key Vault
 resource "azurerm_key_vault" "wedding_api_kv" {
-  name                        = "lennyandparkerhorn-wedding-api-kv"
+  name                        = "lennyandparkerhornweddingapikv"
   location                    = data.azurerm_resource_group.wedding_api_capability_rg.location
   resource_group_name         = data.azurerm_resource_group.wedding_api_capability_rg.name
   enabled_for_disk_encryption = true

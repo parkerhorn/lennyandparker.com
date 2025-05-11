@@ -15,15 +15,12 @@ parameters:
     values:
       - dev
       - prod
-  - name: workingDirectory
-    type: string
-    default: '$(System.DefaultWorkingDirectory)/infrastructure/environment'
 
 ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/main') }}:
   extends:
     template: deploy.yml
     parameters:
-      workingDirectory: ${{ parameters.workingDirectory }}
+      workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/environment'
       backendAzureRmKey: 'environment-dev.tfstate'
       commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)" -var-file="dev.tfvars"'
 
@@ -31,6 +28,6 @@ ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
   extends:
     template: deploy.yml
     parameters:
-      workingDirectory: ${{ parameters.workingDirectory }}
+      workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/environment'
       backendAzureRmKey: 'environment-prod.tfstate'
       commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)" -var-file="prod.tfvars"' 

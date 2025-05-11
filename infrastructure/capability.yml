@@ -7,14 +7,9 @@ trigger:
       - infrastructure/capability/**
       - infrastructure/deploy.yml
 
-parameters:
-  - name: workingDirectory
-    type: string
-    default: '$(System.DefaultWorkingDirectory)/infrastructure/capability'
-
 extends:
   template: deploy.yml
   parameters:
-    workingDirectory: ${{ parameters.workingDirectory }}
+    workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/capability'
     backendAzureRmKey: 'capability.tfstate'
     commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)"' 

@@ -2,7 +2,6 @@ trigger:
   branches:
     include:
       - main
-      - develop
   paths:
     include:
       - infrastructure/environment/**
@@ -16,18 +15,15 @@ parameters:
       - dev
       - prod
 
-${{ if ne(variables['Build.SourceBranch'], 'refs/heads/main') }}:
-  extends:
-    template: deploy.yml
-    parameters:
-      workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/environment'
-      backendAzureRmKey: 'environment-dev.tfstate'
-      commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)" -var-file="dev.tfvars"'
+variables:
+  ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+    varFile: 'dev.tfvars'
+  ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+    varFile: 'prod.tfvars'
 
-${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
-  extends:
-    template: deploy.yml
-    parameters:
-      workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/environment'
-      backendAzureRmKey: 'environment-prod.tfstate'
-      commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)" -var-file="prod.tfvars"' 
+extends:
+  template: deploy.yml
+  parameters:
+    workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/environment'
+    backendAzureRmKey: 'infra.tfstate'
+    commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)" -var-file="${{ variables.varFile }}"' 

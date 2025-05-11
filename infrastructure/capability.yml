@@ -11,5 +11,5 @@ extends:
   template: deploy.yml
   parameters:
     workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/capability'
-    backendAzureRmKey: 'capability.tfstate'
+    backendAzureRmKey: 'infra.tfstate'
     commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)"' 

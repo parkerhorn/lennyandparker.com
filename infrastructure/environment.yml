@@ -22,7 +22,7 @@ variables:
     varFile: 'prod.tfvars'
 
 extends:
-  template: ../deploy.yml
+  template: deploy.yml
   parameters:
     workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/environment'
     backendAzureRmKey: 'infra.tfstate'

@@ -1,11 +1,3 @@
-trigger:
-  branches:
-    include:
-    - main
-  paths:
-    include:
-    - infrastructure/**
-
 parameters:
   - name: workingDirectory
     type: string
@@ -13,56 +5,48 @@ parameters:
     type: string
   - name: commandOptions
     type: string
+  - name: jobDisplayName
+    type: string
+    default: 'Terraform Deploy Job'
 
-variables:
-  - name: TF_WORKSPACE
-    value: 'default'
-  - name: TF_VAR_location
-    value: 'centralus'
-  - name: TF_VAR_service_principal_id
-    value: $(SERVICE_PRINCIPAL_ID)
+jobs:
+- job: Terraform_Deployment_Job
+  displayName: ${{ parameters.jobDisplayName }}
+  pool:
+    vmImage: 'ubuntu-latest'
+  steps:
+  - task: TerraformInstaller@1
+    displayName: 'Install Terraform'
+    inputs:
+      terraformVersion: 'latest'
 
-stages:
-- stage: Deploy_Infrastructure
-  displayName: 'Deploy Infrastructure'
-  jobs:
-  - job: Deploy
-    displayName: 'Deploy'
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-    - task: TerraformInstaller@1
-      displayName: 'Install Terraform'
-      inputs:
-        terraformVersion: 'latest'
+  - task: TerraformTaskV4@4
+    displayName: 'Terraform Init'
+    inputs:
+      provider: 'azurerm'
+      command: 'init'
+      workingDirectory: ${{ parameters.workingDirectory }}
+      backendServiceArm: 'Azure Subscription'
+      backendAzureRmResourceGroupName: 'wedding-api-capability-rg'
+      backendAzureRmStorageAccountName: 'weddingapistate'
+      backendAzureRmContainerName: 'tfstate'
+      backendAzureRmKey: ${{ parameters.backendAzureRmKey }}
 
-    - task: TerraformTaskV4@4
-      displayName: 'Terraform Init'
-      inputs:
-        provider: 'azurerm'
-        command: 'init'
-        workingDirectory: ${{ parameters.workingDirectory }}
-        backendServiceArm: 'Azure Subscription'
-        backendAzureRmResourceGroupName: 'wedding-api-capability-rg'
-        backendAzureRmStorageAccountName: 'weddingapistate'
-        backendAzureRmContainerName: 'tfstate'
-        backendAzureRmKey: ${{ parameters.backendAzureRmKey }}
+  - task: TerraformTaskV4@4
+    displayName: 'Terraform Plan'
+    inputs:
+      provider: 'azurerm'
+      command: 'plan'
+      workingDirectory: ${{ parameters.workingDirectory }}
+      environmentServiceNameAzureRM: 'Azure Subscription'
+      commandOptions: ${{ parameters.commandOptions }}
+      publishPlanResults: 'tfplan'
 
-    - task: TerraformTaskV4@4
-      displayName: 'Terraform Plan'
-      inputs:
-        provider: 'azurerm'
-        command: 'plan'
-        workingDirectory: ${{ parameters.workingDirectory }}
-        environmentServiceNameAzureRM: 'Azure Subscription'
-        commandOptions: ${{ parameters.commandOptions }}
-        publishPlanResults: 'tfplan'
-
-    - task: TerraformTaskV4@4
-      displayName: 'Terraform Apply'
-      inputs:
-        provider: 'azurerm'
-        command: 'apply'
-        workingDirectory: ${{ parameters.workingDirectory }}
-        environmentServiceNameAzureRM: 'Azure Subscription'
-        commandOptions: ${{ parameters.commandOptions }} 
+  - task: TerraformTaskV4@4
+    displayName: 'Terraform Apply'
+    inputs:
+      provider: 'azurerm'
+      command: 'apply'
+      workingDirectory: ${{ parameters.workingDirectory }}
+      environmentServiceNameAzureRM: 'Azure Subscription'
+      commandOptions: ${{ parameters.commandOptions }} 

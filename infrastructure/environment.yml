@@ -7,26 +7,29 @@ trigger:
       - infrastructure/environment/**
       - infrastructure/deploy.yml
 
-parameters:
-  - name: environment
-    type: string
-    default: 'dev'
-    values:
-      - dev
-      - prod
+variables:
+  - name: TF_VAR_location
+    value: 'centralus'
 
-${{ if ne(variables['Build.SourceBranch'], 'refs/heads/main') }}:
-  extends:
-    template: deploy.yml
+stages:
+- stage: Deploy_Dev_Environment
+  displayName: 'Deploy Dev Environment'
+  jobs:
+  - template: deploy.yml
     parameters:
+      jobDisplayName: 'Terraform Deploy Dev'
       workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/environment'
       backendAzureRmKey: 'infra.tfstate'
       commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)" -var-file="dev.tfvars"'
 
-${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
-  extends:
-    template: deploy.yml
+- stage: Deploy_Prod_Environment
+  displayName: 'Deploy Prod Environment'
+  dependsOn: Deploy_Dev_Environment
+  condition: succeeded()
+  jobs:
+  - template: deploy.yml
     parameters:
+      jobDisplayName: 'Terraform Deploy Prod'
       workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/environment'
       backendAzureRmKey: 'infra.tfstate'
       commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)" -var-file="prod.tfvars"' 

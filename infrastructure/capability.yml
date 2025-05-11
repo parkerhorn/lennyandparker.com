@@ -7,9 +7,17 @@ trigger:
       - infrastructure/capability/**
       - infrastructure/deploy.yml
 
-extends:
-  template: deploy.yml
-  parameters:
-    workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/capability'
-    backendAzureRmKey: 'infra.tfstate'
-    commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)"' 
+variables:
+  - name: TF_VAR_location
+    value: 'centralus'
+
+stages:
+- stage: Deploy_Capability_Infrastructure
+  displayName: 'Deploy Capability Infrastructure'
+  jobs:
+  - template: deploy.yml
+    parameters:
+      jobDisplayName: 'Terraform Deploy Capability'
+      workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/capability'
+      backendAzureRmKey: 'infra.tfstate'
+      commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)"' 

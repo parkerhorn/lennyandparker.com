@@ -97,7 +97,7 @@ resource "azurerm_linux_web_app" "wedding_api" {
   connection_string {
     name  = "DefaultConnection"
     type  = "SQLAzure"
-    value = data.azurerm_mssql_server.wedding_sql_server.connection_string
+    value = "Server=tcp:${data.azurerm_mssql_server.wedding_sql_server.fully_qualified_domain_name},1433;Initial Catalog=${azurerm_mssql_database.wedding_api_db.name};Persist Security Info=False;User ID=${data.azurerm_mssql_server.wedding_sql_server.administrator_login};Password=${data.azurerm_key_vault_secret.sql_admin_password.value};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
   }
 
   app_settings = {

@@ -34,15 +34,6 @@ data "azurerm_resource_group" "wedding_api_capability_rg" {
   name = "wedding-api-capability-rg"
 }
 
-# App Service Plan
-resource "azurerm_service_plan" "wedding_api_asp" {
-  name                = "wedding-api-service-plan"
-  resource_group_name = data.azurerm_resource_group.wedding_api_capability_rg.name
-  location            = data.azurerm_resource_group.wedding_api_capability_rg.location
-  os_type            = "Linux"
-  sku_name           = "F1"
-  tags               = local.tags
-}
 
 resource "random_password" "sql_admin_password" {
   length           = 32

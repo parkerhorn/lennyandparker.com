@@ -22,11 +22,6 @@ data "azurerm_resource_group" "wedding_api_capability_rg" {
   name = "wedding-api-capability-rg"
 }
 
-data "azurerm_service_plan" "wedding_api_asp" {
-  name                = "wedding-api-service-plan"
-  resource_group_name = data.azurerm_resource_group.wedding_api_capability_rg.name
-}
-
 data "azurerm_mssql_server" "wedding_sql_server" {
   name                = "wedding-api-sql-server"
   resource_group_name = data.azurerm_resource_group.wedding_api_capability_rg.name
@@ -68,6 +63,15 @@ resource "azurerm_resource_group" "wedding_api_env_rg" {
   tags     = local.tags
 }
 
+resource "azurerm_service_plan" "wedding_api_asp" {
+  name                = "wedding-api-${local.environment}-asp"
+  resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
+  location            = azurerm_resource_group.wedding_api_env_rg.location
+  os_type             = "Linux"
+  sku_name            = "F1"
+  tags                = local.tags
+}
+
 # SQL Database
 resource "azurerm_mssql_database" "wedding_api_db" {
   name           = "WeddingApi-${local.environment}"
@@ -83,9 +87,9 @@ resource "azurerm_mssql_database" "wedding_api_db" {
 resource "azurerm_linux_web_app" "wedding_api" {
   name                = "wedding-api-${local.environment}"
   resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
-  location           = azurerm_resource_group.wedding_api_env_rg.location
-  service_plan_id    = data.azurerm_service_plan.wedding_api_asp.id
-  tags               = local.tags
+  location            = azurerm_resource_group.wedding_api_env_rg.location
+  service_plan_id     = azurerm_service_plan.wedding_api_asp.id
+  tags                = local.tags
 
   site_config {
     application_stack {

@@ -7,5 +7,10 @@ public class Invitation : GenericBaseClass
     public bool IsAttending { get; set; }
     public int NumberOfAttendees { get; set; }
     public string? DietaryRestrictions { get; set; }
+
+    public string? AccessibilityRequirements { get; set; }
+    
+    public string[]? Pronouns { get; set; }
     public DateTime? RespondedAt { get; set; }
+
 } 

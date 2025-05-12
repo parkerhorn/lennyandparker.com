@@ -91,7 +91,7 @@ resource "azurerm_linux_web_app" "wedding_api" {
     application_stack {
       dotnet_version = "8.0"
     }
-    always_on = true
+    always_on = false
   }
 
   connection_string {

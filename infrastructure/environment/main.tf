@@ -45,7 +45,7 @@ data "azurerm_key_vault" "wedding_api_kv" {
 
 # Get the admin password from Key Vault
 data "azurerm_key_vault_secret" "sql_admin_password" {
-  name         = "sql-admin-password"
+  name         = "sql-server-admin-password"
   key_vault_id = data.azurerm_key_vault.wedding_api_kv.id
 }
 

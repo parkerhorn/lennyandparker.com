@@ -23,7 +23,7 @@ data "azurerm_resource_group" "wedding_api_capability_rg" {
 }
 
 data "azurerm_service_plan" "wedding_api_asp" {
-  name                = "wedding-api-asp"
+  name                = "wedding-api-service-plan"
   resource_group_name = data.azurerm_resource_group.wedding_api_capability_rg.name
 }
 
@@ -39,7 +39,7 @@ data "azurerm_app_configuration" "wedding_config" {
 
 # Get Key Vault
 data "azurerm_key_vault" "wedding_api_kv" {
-  name                = "wedding-api-kv"
+  name                = "lennyandparkerweddingkv"
   resource_group_name = data.azurerm_resource_group.wedding_api_capability_rg.name
 }
 

@@ -7,9 +7,13 @@ trigger:
       - infrastructure/capability/**
       - infrastructure/deploy.yml
 
-extends:
-  template: deploy.yml
-  parameters:
-    workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/capability'
-    stateKey: 'capability.tfstate'
-    varFile: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)"' 
+stages:
+- stage: Deploy_Capability_Infrastructure
+  displayName: 'Deploy Capability Infrastructure'
+  jobs:
+  - template: deploy.yml
+    parameters:
+      jobDisplayName: 'Terraform Deploy Capability'
+      workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/capability'
+      backendAzureRmKey: 'capability.tfstate'
+      commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)"' 

@@ -1,6 +1,8 @@
 using WeddingAPI.Models;
 using WeddingAPI.Services.Interfaces;
 using WeddingAPI.Repository;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 
 namespace WeddingAPI;
 
@@ -17,9 +19,48 @@ public static class WeddingApi
             .WithName("Root")
             .WithDescription("Root endpoint for the API");
 
-        apiGroup.MapGet("health", () => Results.Ok(new { Status = "Healthy" }))
+        apiGroup.MapGet("health", async (ApplicationDbContext dbContext) => 
+        {
+            try
+            {
+                // Test the database connection
+                await dbContext.Database.CanConnectAsync();
+                
+                return Results.Ok(new { 
+                    Status = "Healthy", 
+                    Timestamp = DateTime.UtcNow,
+                    Components = new[] {
+                        new { 
+                            Name = "Database", 
+                            Status = "Healthy",
+                            Description = "SQL Server connection is working" 
+                        }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                var response = new { 
+                    Status = "Unhealthy", 
+                    Timestamp = DateTime.UtcNow,
+                    Components = new[] {
+                        new { 
+                            Name = "Database", 
+                            Status = "Unhealthy",
+                            Description = $"SQL Server connection failed: {ex.Message}" 
+                        }
+                    }
+                };
+                
+                return Results.Problem(
+                    statusCode: 503,
+                    title: "Health Check Failed",
+                    detail: ex.Message,
+                    instance: "/api/health");
+            }
+        })
             .WithName("HealthCheck")
-            .WithDescription("Health check endpoint for Azure");
+            .WithDescription("Health check endpoint for testing database connectivity");
 
         // RSVP endpoints
         var rsvpGroup = apiGroup.MapGroup("rsvp")
@@ -58,11 +99,13 @@ public static class WeddingApi
             if (existingInvitation is null)
                 return Results.NotFound();
 
-            existingInvitation.Name = invitation.Name;
+            existingInvitation.FirstName = invitation.FirstName;
+            existingInvitation.LastName = invitation.LastName;
             existingInvitation.Email = invitation.Email;
             existingInvitation.IsAttending = invitation.IsAttending;
-            existingInvitation.NumberOfAttendees = invitation.NumberOfAttendees;
             existingInvitation.DietaryRestrictions = invitation.DietaryRestrictions;
+            existingInvitation.AccessibilityRequirements = invitation.AccessibilityRequirements;
+            existingInvitation.Pronouns = invitation.Pronouns;
             existingInvitation.UpdatedAt = DateTime.UtcNow;
             existingInvitation.RespondedAt = DateTime.UtcNow;
 

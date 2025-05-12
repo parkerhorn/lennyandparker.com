@@ -7,10 +7,6 @@ trigger:
       - infrastructure/capability/**
       - infrastructure/deploy.yml
 
-variables:
-  - name: TF_VAR_location
-    value: 'centralus'
-
 stages:
 - stage: Deploy_Capability_Infrastructure
   displayName: 'Deploy Capability Infrastructure'

@@ -1,7 +1,7 @@
 variable "location" {
   description = "The Azure region where resources will be created"
   type        = string
-  default     = "westus"
+  default     = "centralus"
 }
 
 variable "service_principal_id" {

@@ -7,10 +7,6 @@ trigger:
       - infrastructure/environment/**
       - infrastructure/deploy.yml
 
-variables:
-  - name: TF_VAR_location
-    value: 'centralus'
-
 stages:
 - stage: Deploy_Dev_Environment
   displayName: 'Deploy Dev Environment'

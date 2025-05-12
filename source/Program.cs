@@ -4,9 +4,6 @@ using WeddingAPI.Models;
 using WeddingAPI.Services.Interfaces;
 using WeddingAPI.Repository.Interfaces;
 using WeddingAPI.Services;
-using Azure.Identity;
-using Microsoft.Extensions.Configuration.AzureAppConfiguration;
-using Microsoft.Azure.AppConfiguration.AspNetCore;
 
 namespace WeddingAPI;
 
@@ -46,7 +43,7 @@ public class Program
 
         builder.Services.AddScoped<IUnitOfWork<ApplicationDbContext>, UnitOfWork<ApplicationDbContext>>();
 
-        builder.Services.AddScoped<IGenericAsyncDataService<Invitation, ApplicationDbContext>, GenericAsyncDataService<Invitation, ApplicationDbContext>>();
+        builder.Services.AddScoped<IGenericAsyncDataService<RSVP, ApplicationDbContext>, GenericAsyncDataService<RSVP, ApplicationDbContext>>();
 
         var app = builder.Build();
 
@@ -56,7 +53,6 @@ public class Program
             app.UseSwaggerUI();
         }
 
-        // Use Azure App Configuration middleware to refresh configuration
         if (!string.IsNullOrEmpty(appConfigConnectionString))
         {
             app.UseAzureAppConfiguration();

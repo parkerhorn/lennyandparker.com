@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Concurrent;
-using WeddingApi.Repository.Interfaces;
 using WeddingAPI.Repository.Interfaces;
 
 namespace WeddingAPI.Repository;

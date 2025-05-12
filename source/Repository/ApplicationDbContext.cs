@@ -10,13 +10,13 @@ public class ApplicationDbContext : DbContext
     {
     }
 
-    public DbSet<Invitation> Invitations { get; set; }
+    public DbSet<RSVP> RSVPs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<Invitation>(entity =>
+        modelBuilder.Entity<RSVP>(entity =>
         {
             //TODO Add requirements for name and address
 

@@ -21,14 +21,14 @@ public class UnitOfWork<TContext> : IDisposable, IRepositoryFactory<TContext>, I
     {
         var type = typeof(TEntity);
 
-        if (_asyncRepositories[type] is not IGenericAsyncRepository<TEntity> repository)
-        {
-            throw new Exception("Repository does not implement IGenericAsyncRepository");
-        }
-
         if (!_asyncRepositories.ContainsKey(type))
         {
             _asyncRepositories.TryAdd(type, new GenericAsyncRepository<TEntity>(_context));
+        }
+
+        if (_asyncRepositories[type] is not IGenericAsyncRepository<TEntity> repository)
+        {
+            throw new Exception("Repository does not implement IGenericAsyncRepository");
         }
 
         return repository;

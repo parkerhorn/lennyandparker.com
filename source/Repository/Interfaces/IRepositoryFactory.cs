@@ -1,6 +1,6 @@
 ﻿using WeddingAPI.Repository.Interfaces;
 
-namespace WeddingApi.Repository.Interfaces
+namespace WeddingAPI.Repository.Interfaces
 {
     public interface IRepositoryFactory<TContext> where TContext : class
     {

@@ -1,6 +1,11 @@
 using WeddingAPI.Models;
 using WeddingAPI.Services.Interfaces;
 using WeddingAPI.Repository;
+using WeddingAPI.Repository.Interfaces;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace WeddingAPI;
 
@@ -17,56 +22,102 @@ public static class WeddingApi
             .WithName("Root")
             .WithDescription("Root endpoint for the API");
 
-        apiGroup.MapGet("health", () => Results.Ok(new { Status = "Healthy" }))
+        apiGroup.MapGet("health", async (ApplicationDbContext dbContext) => 
+        {
+            try
+            {
+                await dbContext.Database.CanConnectAsync();
+                
+                return Results.Ok(new { 
+                    Status = "Healthy", 
+                    Timestamp = DateTime.UtcNow,
+                    Components = new[] {
+                        new { 
+                            Name = "Database", 
+                            Status = "Healthy",
+                            Description = "SQL Server connection is working" 
+                        }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                var response = new { 
+                    Status = "Unhealthy", 
+                    Timestamp = DateTime.UtcNow,
+                    Components = new[] {
+                        new { 
+                            Name = "Database", 
+                            Status = "Unhealthy",
+                            Description = $"SQL Server connection failed: {ex.Message}" 
+                        }
+                    }
+                };
+                
+                return Results.Problem(
+                    statusCode: 503,
+                    title: "Health Check Failed",
+                    detail: ex.Message,
+                    instance: "/api/health");
+            }
+        })
             .WithName("HealthCheck")
-            .WithDescription("Health check endpoint for Azure");
+            .WithDescription("Health check endpoint for testing database connectivity");
 
         // RSVP endpoints
         var rsvpGroup = apiGroup.MapGroup("rsvp")
             .WithTags("RSVP")
             .WithOpenApi();
 
-        rsvpGroup.MapPost("", async (Invitation invitation, IGenericAsyncDataService<Invitation, ApplicationDbContext> service) =>
+        rsvpGroup.MapPost("", async ([FromBody] IEnumerable<RSVP> rsvps, IGenericAsyncDataService<RSVP, ApplicationDbContext> service, IUnitOfWork<ApplicationDbContext> unitOfWork) =>
         {
-            invitation.RespondedAt = DateTime.UtcNow;
-            var result = await service.AddAndSaveAsync(invitation);
-            return Results.Created($"/api/rsvp/{result.Id}", result);
+            var rsvpsList = rsvps.ToList();
+            
+            foreach (var rsvp in rsvpsList)
+            {
+                await service.AddAsync(rsvp);
+            }
+            
+            await unitOfWork.SaveChangesAsync(new CancellationToken());
+            return Results.Created($"/api/rsvp", rsvpsList);
         })
-        .WithName("CreateRSVP")
-        .WithDescription("Create a new RSVP response");
+        .WithName("CreateRSVPs")
+        .WithDescription("Create multiple RSVP responses")
+        .Produces(StatusCodes.Status201Created);
 
-        rsvpGroup.MapGet("", async (IGenericAsyncDataService<Invitation, ApplicationDbContext> service) =>
+        rsvpGroup.MapGet("", async (IGenericAsyncDataService<RSVP, ApplicationDbContext> service) =>
         {
-            var invitations = await service.GetAllAsync();
-            return Results.Ok(invitations);
+            var rsvps = await service.GetAllAsync();
+            return Results.Ok(rsvps);
         })
         .WithName("GetAllRSVPs")
         .WithDescription("Get all RSVP responses");
 
-        rsvpGroup.MapGet("{id}", async (Guid id, IGenericAsyncDataService<Invitation, ApplicationDbContext> service) =>
+        rsvpGroup.MapGet("{id}", async (Guid id, IGenericAsyncDataService<RSVP, ApplicationDbContext> service) =>
         {
-            var invitation = await service.GetByIdAsync(id);
-            return invitation is null ? Results.NotFound() : Results.Ok(invitation);
+            var rsvp = await service.GetByIdAsync(id);
+            return rsvp is null ? Results.NotFound() : Results.Ok(rsvp);
         })
         .WithName("GetRSVPById")
         .WithDescription("Get a specific RSVP response by ID");
 
-        rsvpGroup.MapPut("{id}", async (Guid id, Invitation invitation, IGenericAsyncDataService<Invitation, ApplicationDbContext> service) =>
+        rsvpGroup.MapPut("{id}", async (Guid id, RSVP rsvp, IGenericAsyncDataService<RSVP, ApplicationDbContext> service) =>
         {
-            var existingInvitation = await service.GetByIdAsync(id);
+            var existingRsvp = await service.GetByIdAsync(id);
 
-            if (existingInvitation is null)
+            if (existingRsvp is null)
                 return Results.NotFound();
 
-            existingInvitation.Name = invitation.Name;
-            existingInvitation.Email = invitation.Email;
-            existingInvitation.IsAttending = invitation.IsAttending;
-            existingInvitation.NumberOfAttendees = invitation.NumberOfAttendees;
-            existingInvitation.DietaryRestrictions = invitation.DietaryRestrictions;
-            existingInvitation.UpdatedAt = DateTime.UtcNow;
-            existingInvitation.RespondedAt = DateTime.UtcNow;
+            existingRsvp.FirstName = rsvp.FirstName;
+            existingRsvp.LastName = rsvp.LastName;
+            existingRsvp.Email = rsvp.Email;
+            existingRsvp.IsAttending = rsvp.IsAttending;
+            existingRsvp.DietaryRestrictions = rsvp.DietaryRestrictions;
+            existingRsvp.AccessibilityRequirements = rsvp.AccessibilityRequirements;
+            existingRsvp.Pronouns = rsvp.Pronouns;
+            existingRsvp.UpdatedAt = DateTime.UtcNow;
 
-            var result = await service.UpdateAndSaveAsync(existingInvitation);
+            var result = await service.UpdateAndSaveAsync(existingRsvp);
             return Results.Ok(result);
         })
         .WithName("UpdateRSVP")

@@ -2,6 +2,10 @@ using WeddingAPI.Models;
 using WeddingAPI.Services.Interfaces;
 using WeddingAPI.Repository;
 using WeddingAPI.Repository.Interfaces;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace WeddingAPI;
 
@@ -60,6 +64,7 @@ public static class WeddingApi
             .WithName("HealthCheck")
             .WithDescription("Health check endpoint for testing database connectivity");
 
+        // RSVP endpoints
         var rsvpGroup = apiGroup.MapGroup("rsvp")
             .WithTags("RSVP")
             .WithOpenApi();
@@ -77,7 +82,25 @@ public static class WeddingApi
             return Results.Created($"/api/rsvp", rsvpsList);
         })
         .WithName("CreateRSVPs")
-        .WithDescription("Create multiple RSVP responses");
+        .WithDescription("Create multiple RSVP responses")
+        .WithOpenApi(operation => {
+            operation.RequestBody.Description = "Array of RSVP objects";
+            var json = @"[
+                  {
+                    ""firstName"": ""John"",
+                    ""lastName"": ""Doe"",
+                    ""email"": ""john@example.com"",
+                    ""isAttending"": true,
+                    ""dietaryRestrictions"": ""Vegetarian"",
+                    ""accessibilityRequirements"": null,
+                    ""pronouns"": ""he/him""
+                  }
+                ]";
+            operation.RequestBody.Content["application/json"].Example = new Microsoft.OpenApi.Any.OpenApiString(json);
+            return operation;
+        })
+        .Produces<IEnumerable<RSVP>>(StatusCodes.Status201Created)
+        .ProducesProblem(StatusCodes.Status400BadRequest);
 
         rsvpGroup.MapGet("", async (IGenericAsyncDataService<RSVP, ApplicationDbContext> service) =>
         {

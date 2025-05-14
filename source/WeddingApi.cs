@@ -13,79 +13,75 @@ public static class WeddingApi
 {
     public static void MapEndpoints(WebApplication app)
     {
-        var apiGroup = app.MapGroup("api")
-            .WithTags("API")
+        var rsvpEndpoints = app.MapGroup("")
+            .WithTags("RSVP")
             .WithOpenApi();
 
-        // System endpoints
-        apiGroup.MapGet("", () => "Lenny and Parker are getting married!")
+        rsvpEndpoints.MapGet("/", () => "Lenny and Parker are getting married!")
             .WithName("Root")
             .WithDescription("Root endpoint for the API");
 
-        apiGroup.MapGet("health", async (ApplicationDbContext dbContext) => 
+        rsvpEndpoints.MapGet("/health", async (ApplicationDbContext dbContext) =>
         {
             try
             {
                 await dbContext.Database.CanConnectAsync();
-                
-                return Results.Ok(new { 
-                    Status = "Healthy", 
+
+                return Results.Ok(new
+                {
+                    Status = "Healthy",
                     Timestamp = DateTime.UtcNow,
                     Components = new[] {
-                        new { 
-                            Name = "Database", 
+                        new {
+                            Name = "Database",
                             Status = "Healthy",
-                            Description = "SQL Server connection is working" 
+                            Description = "SQL Server connection is working"
                         }
                     }
                 });
             }
             catch (Exception ex)
             {
-                var response = new { 
-                    Status = "Unhealthy", 
+                var response = new
+                {
+                    Status = "Unhealthy",
                     Timestamp = DateTime.UtcNow,
                     Components = new[] {
-                        new { 
-                            Name = "Database", 
+                        new {
+                            Name = "Database",
                             Status = "Unhealthy",
-                            Description = $"SQL Server connection failed: {ex.Message}" 
+                            Description = $"SQL Server connection failed: {ex.Message}"
                         }
                     }
                 };
-                
+
                 return Results.Problem(
                     statusCode: 503,
                     title: "Health Check Failed",
                     detail: ex.Message,
-                    instance: "/api/health");
+                    instance: "/health"); // Updated instance path
             }
         })
             .WithName("HealthCheck")
             .WithDescription("Health check endpoint for testing database connectivity");
 
-        // RSVP endpoints
-        var rsvpGroup = apiGroup.MapGroup("rsvp")
-            .WithTags("RSVP")
-            .WithOpenApi();
-
-        rsvpGroup.MapPost("", async ([FromBody] IEnumerable<RSVP> rsvps, IGenericAsyncDataService<RSVP, ApplicationDbContext> service, IUnitOfWork<ApplicationDbContext> unitOfWork) =>
+        rsvpEndpoints.MapPost("/rsvp", async ([FromBody] IEnumerable<RSVP> rsvps, IGenericAsyncDataService<RSVP, ApplicationDbContext> service, IUnitOfWork<ApplicationDbContext> unitOfWork) =>
         {
             var rsvpsList = rsvps.ToList();
-            
+
             foreach (var rsvp in rsvpsList)
             {
                 await service.AddAsync(rsvp);
             }
-            
+
             await unitOfWork.SaveChangesAsync(new CancellationToken());
-            return Results.Created($"/api/rsvp", rsvpsList);
+            return Results.Created($"/rsvp", rsvpsList);
         })
         .WithName("CreateRSVPs")
         .WithDescription("Create multiple RSVP responses")
         .Produces(StatusCodes.Status201Created);
 
-        rsvpGroup.MapGet("", async (IGenericAsyncDataService<RSVP, ApplicationDbContext> service) =>
+        rsvpEndpoints.MapGet("/rsvp", async (IGenericAsyncDataService<RSVP, ApplicationDbContext> service) =>
         {
             var rsvps = await service.GetAllAsync();
             return Results.Ok(rsvps);
@@ -93,7 +89,7 @@ public static class WeddingApi
         .WithName("GetAllRSVPs")
         .WithDescription("Get all RSVP responses");
 
-        rsvpGroup.MapGet("{id}", async (Guid id, IGenericAsyncDataService<RSVP, ApplicationDbContext> service) =>
+        rsvpEndpoints.MapGet("/rsvp/{id}", async (Guid id, IGenericAsyncDataService<RSVP, ApplicationDbContext> service) =>
         {
             var rsvp = await service.GetByIdAsync(id);
             return rsvp is null ? Results.NotFound() : Results.Ok(rsvp);
@@ -101,7 +97,7 @@ public static class WeddingApi
         .WithName("GetRSVPById")
         .WithDescription("Get a specific RSVP response by ID");
 
-        rsvpGroup.MapPut("{id}", async (Guid id, RSVP rsvp, IGenericAsyncDataService<RSVP, ApplicationDbContext> service) =>
+        rsvpEndpoints.MapPut("/rsvp/{id}", async (Guid id, RSVP rsvp, IGenericAsyncDataService<RSVP, ApplicationDbContext> service) =>
         {
             var existingRsvp = await service.GetByIdAsync(id);
 
@@ -123,4 +119,4 @@ public static class WeddingApi
         .WithName("UpdateRSVP")
         .WithDescription("Update an existing RSVP response");
     }
-} 
+}

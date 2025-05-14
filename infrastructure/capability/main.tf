@@ -19,7 +19,6 @@ provider "azurerm" {
 
 data "azurerm_client_config" "current" {}
 
-# Locals
 locals {
   location = var.location
   tags = {
@@ -45,7 +44,6 @@ resource "random_password" "sql_admin_password" {
   min_special      = 1
 }
 
-# SQL Server
 resource "azurerm_mssql_server" "wedding_sql_server" {
   name                         = "wedding-api-sql-server"
   resource_group_name          = data.azurerm_resource_group.wedding_api_capability_rg.name
@@ -57,7 +55,6 @@ resource "azurerm_mssql_server" "wedding_sql_server" {
   tags                        = local.tags
 }
 
-# Key Vault
 resource "azurerm_key_vault" "wedding_api_kv" {
   name                        = "lennyandparkerweddingkv"
   location                    = data.azurerm_resource_group.wedding_api_capability_rg.location
@@ -96,13 +93,4 @@ resource "azurerm_key_vault_secret" "sql_admin_password" {
   name         = "sql-server-admin-password"
   value        = random_password.sql_admin_password.result
   key_vault_id = azurerm_key_vault.wedding_api_kv.id
-}
-
-# App Configuration - Using free tier
-resource "azurerm_app_configuration" "wedding_api_app_config" {
-  name                = "wedding-api-app-config"
-  resource_group_name = data.azurerm_resource_group.wedding_api_capability_rg.name
-  location            = data.azurerm_resource_group.wedding_api_capability_rg.location
-  sku                = "free"
-  tags               = local.tags
 } 

@@ -17,7 +17,6 @@ provider "azurerm" {
   features {}
 }
 
-# Data sources to reference capability resources
 data "azurerm_resource_group" "wedding_api_capability_rg" {
   name = "wedding-api-capability-rg"
 }
@@ -27,24 +26,16 @@ data "azurerm_mssql_server" "wedding_sql_server" {
   resource_group_name = data.azurerm_resource_group.wedding_api_capability_rg.name
 }
 
-data "azurerm_app_configuration" "wedding_config" {
-  name                = "wedding-api-app-config"
-  resource_group_name = data.azurerm_resource_group.wedding_api_capability_rg.name
-}
-
-# Get Key Vault
 data "azurerm_key_vault" "wedding_api_kv" {
   name                = "lennyandparkerweddingkv"
   resource_group_name = data.azurerm_resource_group.wedding_api_capability_rg.name
 }
 
-# Get the admin password from Key Vault
 data "azurerm_key_vault_secret" "sql_admin_password" {
   name         = "sql-server-admin-password"
   key_vault_id = data.azurerm_key_vault.wedding_api_kv.id
 }
 
-# Locals
 locals {
   environment = var.environment
   location    = var.location
@@ -56,7 +47,6 @@ locals {
   }
 }
 
-# Resource Group
 resource "azurerm_resource_group" "wedding_api_env_rg" {
   name     = "wedding-api-${local.environment}-rg"
   location = local.location
@@ -72,18 +62,17 @@ resource "azurerm_service_plan" "wedding_api_asp" {
   tags                = local.tags
 }
 
-# SQL Database
 resource "azurerm_mssql_database" "wedding_api_db" {
-  name           = "WeddingApi-${local.environment}"
-  server_id      = data.azurerm_mssql_server.wedding_sql_server.id
-  collation      = "SQL_Latin1_General_CP1_CI_AS"
-  license_type   = "LicenseIncluded"
-  max_size_gb    = 2
-  sku_name       = "Basic"
-  tags           = local.tags
+  name            = "WeddingApi-${local.environment}"
+  server_id       = data.azurerm_mssql_server.wedding_sql_server.id
+  collation       = "SQL_Latin1_General_CP1_CI_AS"
+  max_size_gb     = 2
+  sku_name        = "GP_S_Gen5_1"
+  min_capacity    = 0.5
+  auto_pause_delay_in_minutes = 60
+  tags            = local.tags
 }
 
-# Web App
 resource "azurerm_linux_web_app" "wedding_api" {
   name                = "wedding-api-${local.environment}"
   resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
@@ -105,8 +94,7 @@ resource "azurerm_linux_web_app" "wedding_api" {
   }
 
   app_settings = {
-    "AppConfiguration__ConnectionString" = data.azurerm_app_configuration.wedding_config.primary_read_key[0].connection_string
-    "ASPNETCORE_ENVIRONMENT" = local.environment == "dev" ? "Development" : "Production"
+    "ASPNETCORE_ENVIRONMENT" = local.environment == "dev" ? "Development" : "Production",
     "WEBSITE_RUN_FROM_PACKAGE" = "1"
   }
 } 

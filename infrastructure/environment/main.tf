@@ -17,6 +17,9 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_client_config" "current" {
+}
+
 data "azurerm_resource_group" "wedding_api_capability_rg" {
   name = "wedding-api-capability-rg"
 }
@@ -73,12 +76,29 @@ resource "azurerm_mssql_database" "wedding_api_db" {
   tags            = local.tags
 }
 
+# This secret stores the fully constructed connection string for the database of this environment
+resource "azurerm_key_vault_secret" "database_connection_string" {
+  name         = "WeddingApiDbConnectionString-${local.environment}"
+  value        = "Server=tcp:${data.azurerm_mssql_server.wedding_sql_server.fully_qualified_domain_name},1433;Initial Catalog=${azurerm_mssql_database.wedding_api_db.name};Persist Security Info=False;User ID=${data.azurerm_mssql_server.wedding_sql_server.administrator_login};Password=${data.azurerm_key_vault_secret.sql_admin_password.value};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+  key_vault_id = data.azurerm_key_vault.wedding_api_kv.id
+  tags         = local.tags
+
+  depends_on = [
+    data.azurerm_key_vault_secret.sql_admin_password, # Ensure password is read before trying to use it
+    azurerm_mssql_database.wedding_api_db          # Ensure DB exists before constructing its conn string
+  ]
+}
+
 resource "azurerm_linux_web_app" "wedding_api" {
   name                = "wedding-api-${local.environment}"
   resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
   location            = azurerm_resource_group.wedding_api_env_rg.location
   service_plan_id     = azurerm_service_plan.wedding_api_asp.id
   tags                = local.tags
+
+  identity {
+    type = "SystemAssigned"
+  }
 
   site_config {
     application_stack {
@@ -87,14 +107,29 @@ resource "azurerm_linux_web_app" "wedding_api" {
     always_on = false
   }
 
-  connection_string {
-    name  = "DefaultConnection"
-    type  = "SQLAzure"
-    value = "Server=tcp:${data.azurerm_mssql_server.wedding_sql_server.fully_qualified_domain_name},1433;Initial Catalog=${azurerm_mssql_database.wedding_api_db.name};Persist Security Info=False;User ID=${data.azurerm_mssql_server.wedding_sql_server.administrator_login};Password=${data.azurerm_key_vault_secret.sql_admin_password.value};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+  app_settings = {
+    "ASPNETCORE_ENVIRONMENT"                 = local.environment == "dev" ? "Development" : "Production",
+    "WEBSITE_RUN_FROM_PACKAGE"               = "1",
+    "ConnectionStrings__DefaultConnection"   = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.database_connection_string.secret_uri_with_version})"
   }
 
-  app_settings = {
-    "ASPNETCORE_ENVIRONMENT" = local.environment == "dev" ? "Development" : "Production",
-    "WEBSITE_RUN_FROM_PACKAGE" = "1"
-  }
+  depends_on = [
+    azurerm_key_vault_secret.database_connection_string # Ensure the KV secret for conn string exists
+  ]
+}
+
+resource "azurerm_key_vault_access_policy" "web_app_access_to_kv" {
+  key_vault_id = data.azurerm_key_vault.wedding_api_kv.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_linux_web_app.wedding_api.identity[0].principal_id
+
+  secret_permissions = [
+    "Get",
+    "List"
+  ]
+
+  depends_on = [
+    azurerm_linux_web_app.wedding_api, # Ensure web app identity is created
+    data.azurerm_key_vault.wedding_api_kv # Ensure KV data source is read
+  ]
 } 

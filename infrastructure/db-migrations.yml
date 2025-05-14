@@ -16,10 +16,8 @@ variables:
   projectPath: 'source/WeddingApi.csproj'
   solutionPath: 'source/WeddingApi.sln'
   efArtifactName: 'efmigrator'
-  SQLServerAdminLogin: 'weddingadmin' 
-  CapabilityKeyVaultName: 'lennyandparkerweddingkv'
-  SQLAdminPasswordSecretName: 'sql-server-admin-password'
-  SQLServerName: 'wedding-api-sql-server'
+  capabilityKeyVaultName: 'lennyandparkerweddingkv' # Shared Capability Key Vault Name
+  dbConnStringSecretPrefix: 'WeddingApiDbConnString' # Prefix for the full DB connection string secret in Key Vault
 
 stages:
 - stage: Build
@@ -74,7 +72,7 @@ stages:
   jobs:
   - deployment: DeployDev
     displayName: 'Apply Migrations to Dev DB'
-    environment: 'dev'
+    environment: 'dev' # This should match your ADO Environment name
     pool:
       vmImage: 'ubuntu-latest'
     strategy:
@@ -99,39 +97,53 @@ stages:
               downloadPath: '$(System.ArtifactsDirectory)'
 
           - task: AzureKeyVault@2
-            displayName: 'Get SQL Admin Password from Capability Key Vault'
+            displayName: 'Get Full DB Connection String from Key Vault'
             inputs:
-              azureSubscription: 'Azure Subscription'
-              KeyVaultName: '$(CapabilityKeyVaultName)'
-              SecretsFilter: '$(SQLAdminPasswordSecretName)'
+              azureSubscription: 'Azure Subscription' # Ensure this is your correct ADO Service Connection name
+              KeyVaultName: '$(capabilityKeyVaultName)'
+              SecretsFilter: '$(dbConnStringSecretPrefix)-$(Environment.Name)' # e.g., WeddingApiDbConnString-dev
               RunAsPreJob: false
 
           - script: |
-              echo "Current Environment Name: $(Environment.Name)"
-              FULL_DB_NAME="WeddingApi-$(Environment.Name)"
-              SQL_SERVER_FQDN="$(SQLServerName).database.windows.net"
+              # The Key Vault task makes the secret available as a variable named after the secret itself.
+              # For instance, if SecretsFilter resolves to "WeddingApiDbConnString-dev",
+              # the value will be in a variable $(WeddingApiDbConnString-dev) or $(WeddingApiDbConnString.dev) 
+              # ADO often replaces hyphens with dots or underscores in variable names from KV.
+              # Let's construct the expected variable name carefully.
+              EXPECTED_SECRET_VAR_NAME="$(dbConnStringSecretPrefix)-$(Environment.Name)"
+              # Replace hyphens with underscores for common bash variable compatibility if needed, but test ADO's direct name first.
+              # Or, ADO might make it $(WeddingApiDbConnString.dev) - check pipeline logs for available variables if issues persist.
               
-              echo "SQLAdminPasswordSecretName is: [$(SQLAdminPasswordSecretName)]"
-              # Use eval to ensure variable expansion if the name contains special characters for the shell
-              eval "ADMIN_PASSWORD_VALUE=\"\$($(SQLAdminPasswordSecretName))\"
-
-              if [ -n "$ADMIN_PASSWORD_VALUE" ]; then
-                echo "Admin Password Value retrieved (first char for debug): ${ADMIN_PASSWORD_VALUE:0:1}***"
-              else
-                echo "Admin Password Value IS EMPTY or NOT SET."
+              # Attempt to get the connection string using the direct name first
+              FULL_CONN_STRING_FROM_KV="$($EXPECTED_SECRET_VAR_NAME)"
+              
+              # Fallback for common replacements if direct name fails (test this if needed)
+              if [ -z "$FULL_CONN_STRING_FROM_KV" ]; then
+                echo "Direct secret name retrieval failed, trying with underscores..."
+                EXPECTED_SECRET_VAR_NAME_UNDERSCORES=$(echo $EXPECTED_SECRET_VAR_NAME | sed 's/-/_/g')
+                FULL_CONN_STRING_FROM_KV="$($EXPECTED_SECRET_VAR_NAME_UNDERSCORES)"
+              fi
+              if [ -z "$FULL_CONN_STRING_FROM_KV" ]; then
+                echo "Retrieval with underscores failed, trying with dots..."
+                EXPECTED_SECRET_VAR_NAME_DOTS=$(echo $EXPECTED_SECRET_VAR_NAME | sed 's/-/./g')
+                FULL_CONN_STRING_FROM_KV="$($EXPECTED_SECRET_VAR_NAME_DOTS)"
               fi
 
-              CONN_STRING="Server=tcp:$SQL_SERVER_FQDN,1433;Initial Catalog=$FULL_DB_NAME;Persist Security Info=False;User ID=$(SQLServerAdminLogin);Password=$ADMIN_PASSWORD_VALUE;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+              if [ -z "$FULL_CONN_STRING_FROM_KV" ]; then
+                echo "ERROR: Full connection string '$EXPECTED_SECRET_VAR_NAME' (or variants) was not retrieved from Key Vault or is empty."
+                echo "Please check Key Vault, secret name, and pipeline permissions."
+                exit 1
+              fi
               
-              echo "Applying migrations to $FULL_DB_NAME on $SQL_SERVER_FQDN..."
+              echo "Applying migrations using fetched connection string..."
 
               TARGET_DIR="$(System.ArtifactsDirectory)/$(efArtifactName)/source"
               echo "Changing to directory: $TARGET_DIR"
               cd "$TARGET_DIR"
 
-              echo "Listing files in current directory ($(pwd)) before attempting ef database update:"
+              echo "Listing files in current directory ($(pwd)) before attempting ef database update Norwegen :"
               ls -la
-              dotnet ef database update --assembly WeddingApi.dll --startup-assembly WeddingApi.dll --connection "$CONN_STRING" --verbose
+              dotnet ef database update --assembly WeddingApi.dll --startup-assembly WeddingApi.dll --connection "$FULL_CONN_STRING_FROM_KV" --verbose
             displayName: 'Apply EF Migrations to Dev'
 
 - stage: Deploy_Prod_Migrations
@@ -141,7 +153,7 @@ stages:
   jobs:
   - deployment: DeployProd
     displayName: 'Apply Migrations to Prod DB'
-    environment: 'prod'
+    environment: 'prod' # This should match your ADO Environment name
     pool:
       vmImage: 'ubuntu-latest'
     strategy:
@@ -166,36 +178,40 @@ stages:
               downloadPath: '$(System.ArtifactsDirectory)'
 
           - task: AzureKeyVault@2
-            displayName: 'Get SQL Admin Password from Capability Key Vault'
+            displayName: 'Get Full DB Connection String from Key Vault'
             inputs:
-              azureSubscription: 'Azure Subscription'
-              KeyVaultName: '$(CapabilityKeyVaultName)'
-              SecretsFilter: '$(SQLAdminPasswordSecretName)'
+              azureSubscription: 'Azure Subscription' # Ensure this is your correct ADO Service Connection name
+              KeyVaultName: '$(capabilityKeyVaultName)'
+              SecretsFilter: '$(dbConnStringSecretPrefix)-$(Environment.Name)' # e.g., WeddingApiDbConnString-prod
               RunAsPreJob: false
 
           - script: |
-              echo "Current Environment Name: $(Environment.Name)"
-              FULL_DB_NAME="WeddingApi-$(Environment.Name)"
-              SQL_SERVER_FQDN="$(SQLServerName).database.windows.net"
+              EXPECTED_SECRET_VAR_NAME="$(dbConnStringSecretPrefix)-$(Environment.Name)"
+              FULL_CONN_STRING_FROM_KV="$($EXPECTED_SECRET_VAR_NAME)"
               
-              echo "SQLAdminPasswordSecretName is: [$(SQLAdminPasswordSecretName)]"
-              eval "ADMIN_PASSWORD_VALUE=\"\$($(SQLAdminPasswordSecretName))\"
-
-              if [ -n "$ADMIN_PASSWORD_VALUE" ]; then
-                echo "Admin Password Value retrieved (first char for debug): ${ADMIN_PASSWORD_VALUE:0:1}***"
-              else
-                echo "Admin Password Value IS EMPTY or NOT SET."
+              if [ -z "$FULL_CONN_STRING_FROM_KV" ]; then
+                echo "Direct secret name retrieval failed, trying with underscores..."
+                EXPECTED_SECRET_VAR_NAME_UNDERSCORES=$(echo $EXPECTED_SECRET_VAR_NAME | sed 's/-/_/g')
+                FULL_CONN_STRING_FROM_KV="$($EXPECTED_SECRET_VAR_NAME_UNDERSCORES)"
+              fi
+              if [ -z "$FULL_CONN_STRING_FROM_KV" ]; then
+                echo "Retrieval with underscores failed, trying with dots..."
+                EXPECTED_SECRET_VAR_NAME_DOTS=$(echo $EXPECTED_SECRET_VAR_NAME | sed 's/-/./g')
+                FULL_CONN_STRING_FROM_KV="$($EXPECTED_SECRET_VAR_NAME_DOTS)"
               fi
 
-              CONN_STRING="Server=tcp:$SQL_SERVER_FQDN,1433;Initial Catalog=$FULL_DB_NAME;Persist Security Info=False;User ID=$(SQLServerAdminLogin);Password=$ADMIN_PASSWORD_VALUE;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+              if [ -z "$FULL_CONN_STRING_FROM_KV" ]; then
+                echo "ERROR: Full connection string '$EXPECTED_SECRET_VAR_NAME' (or variants) was not retrieved from Key Vault or is empty."
+                exit 1
+              fi
               
-              echo "Applying migrations to $FULL_DB_NAME on $SQL_SERVER_FQDN..."
-              
+              echo "Applying migrations using fetched connection string..."
+
               TARGET_DIR="$(System.ArtifactsDirectory)/$(efArtifactName)/source"
               echo "Changing to directory: $TARGET_DIR"
               cd "$TARGET_DIR"
 
               echo "Listing files in current directory ($(pwd)) before attempting ef database update:"
               ls -la
-              dotnet ef database update --assembly WeddingApi.dll --startup-assembly WeddingApi.dll --connection "$CONN_STRING" --verbose
+              dotnet ef database update --assembly WeddingApi.dll --startup-assembly WeddingApi.dll --connection "$FULL_CONN_STRING_FROM_KV" --verbose
             displayName: 'Apply EF Migrations to Prod' 

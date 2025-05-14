@@ -9,4 +9,5 @@ public class RSVP : GenericBaseClass
     public string? DietaryRestrictions { get; set; }
     public string? AccessibilityRequirements { get; set; }
     public string? Pronouns { get; set; }
+    public string? Note { get; set; }
 } 

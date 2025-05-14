@@ -110,7 +110,7 @@ resource "azurerm_linux_web_app" "wedding_api" {
   app_settings = {
     "ASPNETCORE_ENVIRONMENT"                 = local.environment == "dev" ? "Development" : "Production",
     "WEBSITE_RUN_FROM_PACKAGE"               = "1",
-    "ConnectionStrings__DefaultConnection"   = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.database_connection_string.secret_uri_with_version})"
+    "ConnectionStrings__DefaultConnection"   = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.database_connection_string.id})"
   }
 
   depends_on = [

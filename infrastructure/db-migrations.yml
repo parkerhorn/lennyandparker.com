@@ -16,8 +16,8 @@ variables:
   projectPath: 'source/WeddingApi.csproj'
   solutionPath: 'source/WeddingApi.sln'
   efArtifactName: 'efmigrator'
-  capabilityKeyVaultName: 'lennyandparkerweddingkv' # Shared Capability Key Vault Name
-  dbConnStringSecretPrefix: 'WeddingApiDbConnString' # Prefix for the full DB connection string secret in Key Vault
+  capabilityKeyVaultName: 'lennyandparkerweddingkv'
+  dbConnStringSecretPrefix: 'WeddingApiDbConnString'
 
 stages:
 - stage: Build
@@ -72,7 +72,7 @@ stages:
   jobs:
   - deployment: DeployDev
     displayName: 'Apply Migrations to Dev DB'
-    environment: 'dev' # This should match your ADO Environment name
+    environment: 'dev'
     pool:
       vmImage: 'ubuntu-latest'
     strategy:
@@ -99,9 +99,9 @@ stages:
           - task: AzureKeyVault@2
             displayName: 'Get Full DB Connection String from Key Vault'
             inputs:
-              azureSubscription: 'Azure Subscription' # Ensure this is your correct ADO Service Connection name
+              azureSubscription: 'Azure Subscription'
               KeyVaultName: '$(capabilityKeyVaultName)'
-              SecretsFilter: '$(dbConnStringSecretPrefix)-$(Environment.Name)' # e.g., WeddingApiDbConnString-dev
+              SecretsFilter: '$(dbConnStringSecretPrefix)-$(Environment.Name)'
               RunAsPreJob: false
 
           - script: |

@@ -111,16 +111,25 @@ stages:
               FULL_DB_NAME="WeddingApi-$(Environment.Name)"
               SQL_SERVER_FQDN="$(SQLServerName).database.windows.net"
               
-              # Access the secret value directly using its name as the variable
-              # If SQLAdminPasswordSecretName is "sql-server-admin-password", the variable is $(sql-server-admin-password)
-              ADMIN_PASSWORD_VALUE="$($(SQLAdminPasswordSecretName))"
+              echo "SQLAdminPasswordSecretName is: [$(SQLAdminPasswordSecretName)]"
+              # Use eval to ensure variable expansion if the name contains special characters for the shell
+              eval "ADMIN_PASSWORD_VALUE=\"\$($(SQLAdminPasswordSecretName))\"
+
+              if [ -n "$ADMIN_PASSWORD_VALUE" ]; then
+                echo "Admin Password Value retrieved (first char for debug): ${ADMIN_PASSWORD_VALUE:0:1}***"
+              else
+                echo "Admin Password Value IS EMPTY or NOT SET."
+              fi
 
               CONN_STRING="Server=tcp:$SQL_SERVER_FQDN,1433;Initial Catalog=$FULL_DB_NAME;Persist Security Info=False;User ID=$(SQLServerAdminLogin);Password=$ADMIN_PASSWORD_VALUE;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
               
               echo "Applying migrations to $FULL_DB_NAME on $SQL_SERVER_FQDN..."
 
-              cd $(System.ArtifactsDirectory)/$(efArtifactName)
-              echo "Listing files in current directory ($(pwd))before attempting ef database update:"
+              TARGET_DIR="$(System.ArtifactsDirectory)/$(efArtifactName)/source"
+              echo "Changing to directory: $TARGET_DIR"
+              cd "$TARGET_DIR"
+
+              echo "Listing files in current directory ($(pwd)) before attempting ef database update:"
               ls -la
               dotnet ef database update --assembly WeddingApi.dll --startup-assembly WeddingApi.dll --connection "$CONN_STRING" --verbose
             displayName: 'Apply EF Migrations to Dev'
@@ -169,14 +178,23 @@ stages:
               FULL_DB_NAME="WeddingApi-$(Environment.Name)"
               SQL_SERVER_FQDN="$(SQLServerName).database.windows.net"
               
-              # Access the secret value directly using its name as the variable
-              ADMIN_PASSWORD_VALUE="$($(SQLAdminPasswordSecretName))"
+              echo "SQLAdminPasswordSecretName is: [$(SQLAdminPasswordSecretName)]"
+              eval "ADMIN_PASSWORD_VALUE=\"\$($(SQLAdminPasswordSecretName))\"
+
+              if [ -n "$ADMIN_PASSWORD_VALUE" ]; then
+                echo "Admin Password Value retrieved (first char for debug): ${ADMIN_PASSWORD_VALUE:0:1}***"
+              else
+                echo "Admin Password Value IS EMPTY or NOT SET."
+              fi
 
               CONN_STRING="Server=tcp:$SQL_SERVER_FQDN,1433;Initial Catalog=$FULL_DB_NAME;Persist Security Info=False;User ID=$(SQLServerAdminLogin);Password=$ADMIN_PASSWORD_VALUE;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
               
               echo "Applying migrations to $FULL_DB_NAME on $SQL_SERVER_FQDN..."
               
-              cd $(System.ArtifactsDirectory)/$(efArtifactName)
+              TARGET_DIR="$(System.ArtifactsDirectory)/$(efArtifactName)/source"
+              echo "Changing to directory: $TARGET_DIR"
+              cd "$TARGET_DIR"
+
               echo "Listing files in current directory ($(pwd)) before attempting ef database update:"
               ls -la
               dotnet ef database update --assembly WeddingApi.dll --startup-assembly WeddingApi.dll --connection "$CONN_STRING" --verbose

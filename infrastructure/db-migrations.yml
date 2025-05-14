@@ -16,11 +16,10 @@ variables:
   projectPath: 'source/WeddingApi.csproj'
   solutionPath: 'source/WeddingApi.sln'
   efArtifactName: 'efmigrator'
-  # Common variables if they don't change per environment, otherwise define in Variable Groups
-   SQLServerAdminLogin: 'weddingadmin' 
-   CapabilityKeyVaultName: 'lennyandparkerweddingkv'
-   SQLAdminPasswordSecretName: 'sql-server-admin-password'
-   SQLServerName: 'wedding-api-sql-server'
+  SQLServerAdminLogin: 'weddingadmin' 
+  CapabilityKeyVaultName: 'lennyandparkerweddingkv'
+  SQLAdminPasswordSecretName: 'sql-server-admin-password'
+  SQLServerName: 'wedding-api-sql-server'
 
 stages:
 - stage: Build

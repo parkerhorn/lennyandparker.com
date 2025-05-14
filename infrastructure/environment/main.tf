@@ -63,13 +63,15 @@ resource "azurerm_service_plan" "wedding_api_asp" {
 }
 
 resource "azurerm_mssql_database" "wedding_api_db" {
-  name           = "WeddingApi-${local.environment}"
-  server_id      = data.azurerm_mssql_server.wedding_sql_server.id
-  collation      = "SQL_Latin1_General_CP1_CI_AS"
-  license_type   = "LicenseIncluded"
-  max_size_gb    = 2
-  sku_name       = "Basic"
-  tags           = local.tags
+  name            = "WeddingApi-${local.environment}"
+  server_id       = data.azurerm_mssql_server.wedding_sql_server.id
+  collation       = "SQL_Latin1_General_CP1_CI_AS"
+  license_type    = "LicenseIncluded"
+  max_size_gb     = 2
+  sku_name        = "GP_S_Gen5_1"
+  min_capacity    = 0.5
+  auto_pause_delay_in_minutes = 60
+  tags            = local.tags
 }
 
 resource "azurerm_linux_web_app" "wedding_api" {

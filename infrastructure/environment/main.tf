@@ -76,7 +76,6 @@ resource "azurerm_mssql_database" "wedding_api_db" {
   tags            = local.tags
 }
 
-# This secret stores the fully constructed connection string for the database of this environment
 resource "azurerm_key_vault_secret" "database_connection_string" {
   name         = "WeddingApiDbConnectionString-${local.environment}"
   value        = "Server=tcp:${data.azurerm_mssql_server.wedding_sql_server.fully_qualified_domain_name},1433;Initial Catalog=${azurerm_mssql_database.wedding_api_db.name};Persist Security Info=False;User ID=${data.azurerm_mssql_server.wedding_sql_server.administrator_login};Password=${data.azurerm_key_vault_secret.sql_admin_password.value};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
@@ -84,8 +83,8 @@ resource "azurerm_key_vault_secret" "database_connection_string" {
   tags         = local.tags
 
   depends_on = [
-    data.azurerm_key_vault_secret.sql_admin_password, # Ensure password is read before trying to use it
-    azurerm_mssql_database.wedding_api_db          # Ensure DB exists before constructing its conn string
+    data.azurerm_key_vault_secret.sql_admin_password,
+    azurerm_mssql_database.wedding_api_db
   ]
 }
 
@@ -114,14 +113,14 @@ resource "azurerm_linux_web_app" "wedding_api" {
   }
 
   depends_on = [
-    azurerm_key_vault_secret.database_connection_string # Ensure the KV secret for conn string exists
+    azurerm_key_vault_secret.database_connection_string
   ]
 }
 
 resource "azurerm_key_vault_access_policy" "web_app_access_to_kv" {
   key_vault_id = data.azurerm_key_vault.wedding_api_kv.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = azurerm_linux_web_app.wedding_api.identity[0].principal_id
+  object_id    = azurerm_linux_web_app.wedding_api.identity.principal_id
 
   secret_permissions = [
     "Get",
@@ -129,7 +128,7 @@ resource "azurerm_key_vault_access_policy" "web_app_access_to_kv" {
   ]
 
   depends_on = [
-    azurerm_linux_web_app.wedding_api, # Ensure web app identity is created
-    data.azurerm_key_vault.wedding_api_kv # Ensure KV data source is read
+    azurerm_linux_web_app.wedding_api,
+    data.azurerm_key_vault.wedding_api_kv
   ]
 } 

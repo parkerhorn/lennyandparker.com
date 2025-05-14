@@ -72,7 +72,7 @@ stages:
   jobs:
   - deployment: DeployDev
     displayName: 'Apply Migrations to Dev DB'
-    environment: 'WeddingAPI-Dev-DB'
+    environment: 'dev'
     pool:
       vmImage: 'ubuntu-latest'
     strategy:
@@ -118,7 +118,7 @@ stages:
   jobs:
   - deployment: DeployProd
     displayName: 'Apply Migrations to Prod DB'
-    environment: 'WeddingAPI-Prod-DB'
+    environment: 'prod'
     pool:
       vmImage: 'ubuntu-latest'
     strategy:

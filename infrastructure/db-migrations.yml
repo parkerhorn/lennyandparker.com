@@ -104,12 +104,10 @@ stages:
               SecretsFilter: 'DatabaseConnectionString'
               RunAsPreJob: false
 
-          - task: DotNetCoreCLI@2
+          - script: |
+              cd $(System.ArtifactsDirectory)/$(efArtifactName)
+              dotnet ef database update --assembly WeddingApi.dll --startup-assembly WeddingApi.dll --connection "$(DatabaseConnectionString)" --verbose
             displayName: 'Apply EF Migrations to Dev'
-            inputs:
-              command: 'ef'
-              arguments: 'database update --assembly WeddingApi.dll --startup-assembly WeddingApi.dll --connection "$(DatabaseConnectionString)" --verbose'
-            workingDirectory: '$(System.ArtifactsDirectory)/$(efArtifactName)/$(efArtifactName)'
 
 - stage: Deploy_Prod_Migrations
   displayName: 'Deploy Prod DB Migrations'
@@ -152,9 +150,7 @@ stages:
               SecretsFilter: 'DatabaseConnectionString'
               RunAsPreJob: false
 
-          - task: DotNetCoreCLI@2
-            displayName: 'Apply EF Migrations to Prod'
-            inputs:
-              command: 'ef'
-              arguments: 'database update --assembly WeddingApi.dll --startup-assembly WeddingApi.dll --connection "$(DatabaseConnectionString)" --verbose'
-            workingDirectory: '$(System.ArtifactsDirectory)/$(efArtifactName)/$(efArtifactName)' 
+          - script: |
+              cd $(System.ArtifactsDirectory)/$(efArtifactName)
+              dotnet ef database update --assembly WeddingApi.dll --startup-assembly WeddingApi.dll --connection "$(DatabaseConnectionString)" --verbose
+            displayName: 'Apply EF Migrations to Prod' 

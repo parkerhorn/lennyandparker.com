@@ -111,11 +111,17 @@ stages:
               FULL_DB_NAME="WeddingApi-$(Environment.Name)"
               SQL_SERVER_FQDN="$(SQLServerName).database.windows.net"
               
-              CONN_STRING="Server=tcp:$SQL_SERVER_FQDN,1433;Initial Catalog=$FULL_DB_NAME;Persist Security Info=False;User ID=$(SQLServerAdminLogin);Password=$($(SQLAdminPasswordSecretName));MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+              # Access the secret value directly using its name as the variable
+              # If SQLAdminPasswordSecretName is "sql-server-admin-password", the variable is $(sql-server-admin-password)
+              ADMIN_PASSWORD_VALUE="$($(SQLAdminPasswordSecretName))"
+
+              CONN_STRING="Server=tcp:$SQL_SERVER_FQDN,1433;Initial Catalog=$FULL_DB_NAME;Persist Security Info=False;User ID=$(SQLServerAdminLogin);Password=$ADMIN_PASSWORD_VALUE;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
               
               echo "Applying migrations to $FULL_DB_NAME on $SQL_SERVER_FQDN..."
 
               cd $(System.ArtifactsDirectory)/$(efArtifactName)
+              echo "Listing files in current directory ($(pwd))before attempting ef database update:"
+              ls -la
               dotnet ef database update --assembly WeddingApi.dll --startup-assembly WeddingApi.dll --connection "$CONN_STRING" --verbose
             displayName: 'Apply EF Migrations to Dev'
 
@@ -163,10 +169,15 @@ stages:
               FULL_DB_NAME="WeddingApi-$(Environment.Name)"
               SQL_SERVER_FQDN="$(SQLServerName).database.windows.net"
               
-              CONN_STRING="Server=tcp:$SQL_SERVER_FQDN,1433;Initial Catalog=$FULL_DB_NAME;Persist Security Info=False;User ID=$(SQLServerAdminLogin);Password=$($(SQLAdminPasswordSecretName));MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+              # Access the secret value directly using its name as the variable
+              ADMIN_PASSWORD_VALUE="$($(SQLAdminPasswordSecretName))"
+
+              CONN_STRING="Server=tcp:$SQL_SERVER_FQDN,1433;Initial Catalog=$FULL_DB_NAME;Persist Security Info=False;User ID=$(SQLServerAdminLogin);Password=$ADMIN_PASSWORD_VALUE;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
               
               echo "Applying migrations to $FULL_DB_NAME on $SQL_SERVER_FQDN..."
               
               cd $(System.ArtifactsDirectory)/$(efArtifactName)
+              echo "Listing files in current directory ($(pwd)) before attempting ef database update:"
+              ls -la
               dotnet ef database update --assembly WeddingApi.dll --startup-assembly WeddingApi.dll --connection "$CONN_STRING" --verbose
             displayName: 'Apply EF Migrations to Prod' 

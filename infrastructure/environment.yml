@@ -23,46 +23,9 @@ stages:
   dependsOn: Deploy_Dev_Environment
   condition: succeeded()
   jobs:
-  - deployment: Terraform_Deploy_Prod
-    displayName: 'Deploy Production Infrastructure'
-    environment: Production
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - checkout: self
-          - task: TerraformInstaller@1
-            displayName: 'Install Terraform'
-            inputs:
-              terraformVersion: 'latest'
-
-          - task: TerraformTaskV4@4
-            displayName: 'Terraform Init'
-            inputs:
-              provider: 'azurerm'
-              command: 'init'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/environment'
-              backendServiceArm: 'Azure Subscription'
-              backendAzureRmResourceGroupName: 'wedding-api-capability-rg'
-              backendAzureRmStorageAccountName: 'weddingapistate'
-              backendAzureRmContainerName: 'tfstate'
-              backendAzureRmKey: 'environment-prod.tfstate'
-
-          - task: TerraformTaskV4@4
-            displayName: 'Terraform Plan'
-            inputs:
-              provider: 'azurerm'
-              command: 'plan'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/environment'
-              environmentServiceNameAzureRM: 'Azure Subscription'
-              commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)" -var-file="prod.tfvars"'
-              publishPlanResults: 'tfplan'
-
-          - task: TerraformTaskV4@4
-            displayName: 'Terraform Apply'
-            inputs:
-              provider: 'azurerm'
-              command: 'apply'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/environment'
-              environmentServiceNameAzureRM: 'Azure Subscription'
-              commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)" -var-file="prod.tfvars"' 
+  - template: deploy.yml
+    parameters:
+      jobDisplayName: 'Terraform Deploy Prod'
+      workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/environment'
+      backendAzureRmKey: 'environment-prod.tfstate'
+      commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)" -var-file="prod.tfvars"' 

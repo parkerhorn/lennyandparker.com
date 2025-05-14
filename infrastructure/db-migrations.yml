@@ -71,8 +71,6 @@ stages:
   displayName: 'Deploy Dev DB Migrations'
   dependsOn: Build
   condition: succeeded()
-  variables:
-  - group: WeddingAPI-Dev-Variables # Must contain: AzureServiceConnectionName, CapabilityKeyVaultName, SQLAdminPasswordSecretName, SQLServerName, SQLServerAdminLogin
   jobs:
   - deployment: DeployDev
     displayName: 'Apply Migrations to Dev DB'
@@ -113,16 +111,9 @@ stages:
               FULL_DB_NAME="WeddingApi-$(Environment.Name)"
               SQL_SERVER_FQDN="$(SQLServerName).database.windows.net"
               
-              # The KeyVault task makes secrets available as variables named after the secret itself.
-              # For example, if SQLAdminPasswordSecretName is 'sql-server-admin-password', 
-              # its value is in $(sql-server-admin-password)
-              ADMIN_PASSWORD_VAR_NAME=$(echo "$(SQLAdminPasswordSecretName)" | sed 's/-/_/g') # Bash compatible var name if needed, ADO handles original fine.
-              
               CONN_STRING="Server=tcp:$SQL_SERVER_FQDN,1433;Initial Catalog=$FULL_DB_NAME;Persist Security Info=False;User ID=$(SQLServerAdminLogin);Password=$($(SQLAdminPasswordSecretName));MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
               
               echo "Applying migrations to $FULL_DB_NAME on $SQL_SERVER_FQDN..."
-              # For debugging, be careful with echoing connection strings with passwords, even in pipeline logs.
-              # echo "DEBUG: Connection String (password redacted): Server=tcp:$SQL_SERVER_FQDN,1433;Initial Catalog=$FULL_DB_NAME;User ID=$(SQLServerAdminLogin);Password=***"
 
               cd $(System.ArtifactsDirectory)/$(efArtifactName)
               dotnet ef database update --assembly WeddingApi.dll --startup-assembly WeddingApi.dll --connection "$CONN_STRING" --verbose
@@ -132,8 +123,6 @@ stages:
   displayName: 'Deploy Prod DB Migrations'
   dependsOn: Deploy_Dev_Migrations
   condition: succeeded()
-  variables:
-  - group: WeddingAPI-Prod-Variables # Must contain: AzureServiceConnectionName, CapabilityKeyVaultName, SQLAdminPasswordSecretName, SQLServerName, SQLServerAdminLogin
   jobs:
   - deployment: DeployProd
     displayName: 'Apply Migrations to Prod DB'
@@ -174,8 +163,6 @@ stages:
               FULL_DB_NAME="WeddingApi-$(Environment.Name)"
               SQL_SERVER_FQDN="$(SQLServerName).database.windows.net"
               
-              ADMIN_PASSWORD_VAR_NAME=$(echo "$(SQLAdminPasswordSecretName)" | sed 's/-/_/g')
-
               CONN_STRING="Server=tcp:$SQL_SERVER_FQDN,1433;Initial Catalog=$FULL_DB_NAME;Persist Security Info=False;User ID=$(SQLServerAdminLogin);Password=$($(SQLAdminPasswordSecretName));MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
               
               echo "Applying migrations to $FULL_DB_NAME on $SQL_SERVER_FQDN..."

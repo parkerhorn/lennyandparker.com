@@ -1,0 +1,160 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - source/Migrations/**
+      - source/WeddingApi.csproj
+      - infrastructure/db-migrations.yml
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  buildConfiguration: 'Release'
+  projectPath: 'source/WeddingApi.csproj'
+  solutionPath: 'source/WeddingApi.sln'
+  efArtifactName: 'efmigrator'
+
+stages:
+- stage: Build
+  displayName: 'Build EF Migrator'
+  jobs:
+  - job: Build
+    displayName: 'Build .NET Project and EF Tool'
+    steps:
+    - task: UseDotNet@2
+      displayName: 'Use .NET SDK'
+      inputs:
+        packageType: 'sdk'
+        version: '8.x'
+
+    - script: dotnet tool install --global dotnet-ef
+      displayName: 'Install/Update dotnet-ef tool'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Restore NuGet packages'
+      inputs:
+        command: 'restore'
+        projects: '$(solutionPath)'
+        feedsToUse: 'select'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Build project'
+      inputs:
+        command: 'build'
+        projects: '$(projectPath)'
+        arguments: '--configuration $(buildConfiguration) --no-restore'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Publish EF Migrator'
+      inputs:
+        command: 'publish'
+        publishWebProjects: false
+        projects: '$(projectPath)'
+        arguments: '--configuration $(buildConfiguration) --no-build --output $(Build.ArtifactStagingDirectory)/$(efArtifactName)'
+        zipAfterPublish: false
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact: $(efArtifactName)'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(efArtifactName)'
+        ArtifactName: '$(efArtifactName)'
+        publishLocation: 'Container'
+
+- stage: Deploy_Dev_Migrations
+  displayName: 'Deploy Dev DB Migrations'
+  dependsOn: Build
+  condition: succeeded()
+  variables:
+  - group: WeddingAPI-Dev-Variables
+  jobs:
+  - deployment: DeployDev
+    displayName: 'Apply Migrations to Dev DB'
+    environment: 'WeddingAPI-Dev-DB'
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: UseDotNet@2
+            displayName: 'Use .NET SDK'
+            inputs:
+              packageType: 'sdk'
+              version: '8.x'
+
+          - script: dotnet tool install --global dotnet-ef
+            displayName: 'Install/Update dotnet-ef tool on agent'
+
+          - task: DownloadBuildArtifacts@1
+            displayName: 'Download EF Migrator Artifact'
+            inputs:
+              buildType: 'current'
+              downloadType: 'single'
+              artifactName: '$(efArtifactName)'
+              downloadPath: '$(System.ArtifactsDirectory)'
+
+          - task: AzureKeyVault@2
+            displayName: 'Get Dev DB Connection String from Key Vault'
+            inputs:
+              azureSubscription: '$(AzureServiceConnectionName)'
+              KeyVaultName: '$(DevKeyVaultName)'
+              SecretsFilter: 'DatabaseConnectionString'
+              RunAsPreJob: false
+
+          - task: DotNetCoreCLI@2
+            displayName: 'Apply EF Migrations to Dev'
+            inputs:
+              command: 'ef'
+              arguments: 'database update --assembly WeddingApi.dll --startup-assembly WeddingApi.dll --connection "$(DatabaseConnectionString)" --verbose'
+            workingDirectory: '$(System.ArtifactsDirectory)/$(efArtifactName)/$(efArtifactName)'
+
+- stage: Deploy_Prod_Migrations
+  displayName: 'Deploy Prod DB Migrations'
+  dependsOn: Deploy_Dev_Migrations
+  condition: succeeded()
+  variables:
+  - group: WeddingAPI-Prod-Variables
+  jobs:
+  - deployment: DeployProd
+    displayName: 'Apply Migrations to Prod DB'
+    environment: 'WeddingAPI-Prod-DB'
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: UseDotNet@2
+            displayName: 'Use .NET SDK'
+            inputs:
+              packageType: 'sdk'
+              version: '8.x'
+
+          - script: dotnet tool install --global dotnet-ef
+            displayName: 'Install/Update dotnet-ef tool on agent'
+
+          - task: DownloadBuildArtifacts@1
+            displayName: 'Download EF Migrator Artifact'
+            inputs:
+              buildType: 'current'
+              downloadType: 'single'
+              artifactName: '$(efArtifactName)'
+              downloadPath: '$(System.ArtifactsDirectory)'
+
+          - task: AzureKeyVault@2
+            displayName: 'Get Prod DB Connection String from Key Vault'
+            inputs:
+              azureSubscription: '$(AzureServiceConnectionName)'
+              KeyVaultName: '$(ProdKeyVaultName)'
+              SecretsFilter: 'DatabaseConnectionString'
+              RunAsPreJob: false
+
+          - task: DotNetCoreCLI@2
+            displayName: 'Apply EF Migrations to Prod'
+            inputs:
+              command: 'ef'
+              arguments: 'database update --assembly WeddingApi.dll --startup-assembly WeddingApi.dll --connection "$(DatabaseConnectionString)" --verbose'
+            workingDirectory: '$(System.ArtifactsDirectory)/$(efArtifactName)/$(efArtifactName)' 

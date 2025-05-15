@@ -126,9 +126,4 @@ resource "azurerm_key_vault_access_policy" "web_app_access_to_kv" {
     "Get",
     "List"
   ]
-
-  depends_on = [
-    azurerm_linux_web_app.wedding_api,
-    data.azurerm_key_vault.wedding_api_kv
-  ]
 } 

@@ -17,7 +17,7 @@ variables:
   solutionPath: 'source/WeddingApi.sln'
   efArtifactName: 'efmigrator'
   capabilityKeyVaultName: 'lennyandparkerweddingkv'
-  dbConnStringSecretPrefix: 'WeddingApiDbConnString'
+  dbConnStringSecretPrefix: 'WeddingApiDbConnectionString'
 
 stages:
 - stage: Build

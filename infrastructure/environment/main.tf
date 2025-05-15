@@ -118,17 +118,17 @@ resource "azurerm_linux_web_app" "wedding_api" {
   ]
 }
 
-# resource "azurerm_key_vault_access_policy" "web_app_access_to_kv" {
-#   key_vault_id = data.azurerm_key_vault.wedding_api_kv.id
-#   tenant_id    = data.azurerm_client_config.current.tenant_id
-#   object_id    = azurerm_linux_web_app.wedding_api.identity[0].principal_id
+resource "azurerm_key_vault_access_policy" "web_app_access_to_kv" {
+  key_vault_id = data.azurerm_key_vault.wedding_api_kv.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_linux_web_app.wedding_api.identity[0].principal_id
 
-#   secret_permissions = [
-#     "Get",
-#     "List"
-#   ]
+  secret_permissions = [
+    "Get",
+    "List"
+  ]
 
-#   depends_on = [
-#     azurerm_linux_web_app.wedding_api
-#   ]
-# } 
+  depends_on = [
+    azurerm_linux_web_app.wedding_api
+  ]
+} 

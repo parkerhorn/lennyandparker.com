@@ -107,14 +107,9 @@ resource "azurerm_linux_web_app" "wedding_api" {
   }
 
   app_settings = {
-    "ASPNETCORE_ENVIRONMENT"                 = local.environment == "dev" ? "Development" : "Production",
-    "WEBSITE_RUN_FROM_PACKAGE"               = "1",
-    "ConnectionStrings__DefaultConnection"   = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.database_connection_string.id})"
+    "ASPNETCORE_ENVIRONMENT"   = local.environment == "dev" ? "Development" : "Production",
+    "WEBSITE_RUN_FROM_PACKAGE" = "1"
   }
-
-  depends_on = [
-    azurerm_key_vault_secret.database_connection_string
-  ]
 }
 
 resource "azurerm_key_vault_access_policy" "web_app_access_to_kv" {
@@ -125,5 +120,22 @@ resource "azurerm_key_vault_access_policy" "web_app_access_to_kv" {
   secret_permissions = [
     "Get",
     "List"
+  ]
+
+  depends_on = [
+    azurerm_linux_web_app.wedding_api
+  ]
+}
+
+resource "azurerm_app_service_app_settings" "key_vault_settings" {
+  app_settings = {
+    "ConnectionStrings__DefaultConnection" = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.database_connection_string.id})"
+  }
+  name                = azurerm_linux_web_app.wedding_api.name
+  resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
+
+  depends_on = [
+    azurerm_key_vault_access_policy.web_app_access_to_kv,
+    azurerm_key_vault_secret.database_connection_string
   ]
 } 

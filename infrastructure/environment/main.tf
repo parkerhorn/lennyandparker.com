@@ -117,10 +117,15 @@ resource "azurerm_linux_web_app" "wedding_api" {
   ]
 }
 
+output "webapp_identity_principal_id" {
+  value = try(azurerm_linux_web_app.wedding_api.identity[0].principal_id, "No principal ID found")
+}
+
 resource "azurerm_key_vault_access_policy" "web_app_access_to_kv" {
   key_vault_id = data.azurerm_key_vault.wedding_api_kv.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = azurerm_linux_web_app.wedding_api.identity[0].principal_id
+  
+  object_id    = try(azurerm_linux_web_app.wedding_api.identity[0].principal_id, null)
 
   secret_permissions = [
     "Get",
@@ -128,7 +133,6 @@ resource "azurerm_key_vault_access_policy" "web_app_access_to_kv" {
   ]
 
   depends_on = [
-    azurerm_linux_web_app.wedding_api,
-    data.azurerm_key_vault.wedding_api_kv
+    azurerm_linux_web_app.wedding_api
   ]
 } 

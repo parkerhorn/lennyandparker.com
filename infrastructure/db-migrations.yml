@@ -4,9 +4,9 @@ trigger:
       - main
   paths:
     include:
-      - source/Migrations/**
-      - source/WeddingApi.csproj
-      - infrastructure/db-migrations.yml
+      - '**/Migrations/**'
+      - '**/*.csproj'
+      - 'infrastructure/db-migrations.yml'
 
 pool:
   vmImage: 'ubuntu-latest'

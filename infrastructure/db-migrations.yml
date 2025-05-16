@@ -15,16 +15,16 @@ variables:
   buildConfiguration: 'Release'
   projectPath: 'source/WeddingApi.csproj'
   solutionPath: 'source/WeddingApi.sln'
-  efArtifactName: 'efmigrator'
+  efBundleName: 'efbundle'
   capabilityKeyVaultName: 'lennyandparkerweddingkv'
   dbConnStringSecretPrefix: 'WeddingApiDbConnectionString'
 
 stages:
 - stage: Build
-  displayName: 'Build EF Migrator'
+  displayName: 'Build Migration Bundle'
   jobs:
   - job: Build
-    displayName: 'Build .NET Project and EF Tool'
+    displayName: 'Create EF Migration Bundle'
     steps:
     - task: UseDotNet@2
       displayName: 'Use .NET SDK'
@@ -33,7 +33,7 @@ stages:
         version: '8.x'
 
     - script: dotnet tool install --global dotnet-ef
-      displayName: 'Install/Update dotnet-ef tool'
+      displayName: 'Install EF Core tools'
 
     - task: DotNetCoreCLI@2
       displayName: 'Restore NuGet packages'
@@ -47,22 +47,21 @@ stages:
       inputs:
         command: 'build'
         projects: '$(projectPath)'
-        arguments: '--configuration $(buildConfiguration) --no-restore'
+        arguments: '--configuration $(buildConfiguration)'
 
-    - task: DotNetCoreCLI@2
-      displayName: 'Publish EF Migrator'
-      inputs:
-        command: 'publish'
-        publishWebProjects: false
-        projects: '$(projectPath)'
-        arguments: '--configuration $(buildConfiguration) --no-build --output $(Build.ArtifactStagingDirectory)/$(efArtifactName)'
-        zipAfterPublish: false
+    - script: |
+        # Create migration bundle
+        dotnet ef migrations bundle \
+          --project $(projectPath) \
+          --configuration $(buildConfiguration) \
+          --output $(Build.ArtifactStagingDirectory)/$(efBundleName)
+      displayName: 'Create EF Migration Bundle'
 
     - task: PublishBuildArtifacts@1
-      displayName: 'Publish Artifact: $(efArtifactName)'
+      displayName: 'Publish Migration Bundle'
       inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(efArtifactName)'
-        ArtifactName: '$(efArtifactName)'
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: '$(efBundleName)'
         publishLocation: 'Container'
 
 - stage: Deploy_Dev_Migrations
@@ -79,25 +78,16 @@ stages:
       runOnce:
         deploy:
           steps:
-          - task: UseDotNet@2
-            displayName: 'Use .NET SDK'
-            inputs:
-              packageType: 'sdk'
-              version: '8.x'
-
-          - script: dotnet tool install --global dotnet-ef
-            displayName: 'Install/Update dotnet-ef tool on agent'
-
           - task: DownloadBuildArtifacts@1
-            displayName: 'Download EF Migrator Artifact'
+            displayName: 'Download Migration Bundle'
             inputs:
               buildType: 'current'
               downloadType: 'single'
-              artifactName: '$(efArtifactName)'
+              artifactName: '$(efBundleName)'
               downloadPath: '$(System.ArtifactsDirectory)'
 
           - task: AzureKeyVault@2
-            displayName: 'Get Full DB Connection String from Key Vault'
+            displayName: 'Get DB Connection String from Key Vault'
             inputs:
               azureSubscription: 'Azure Subscription'
               KeyVaultName: '$(capabilityKeyVaultName)'
@@ -105,25 +95,18 @@ stages:
               RunAsPreJob: false
 
           - script: |
-              # Get connection string from environment variables set by KeyVault task
+              # Get connection string from environment variables
               CONN_STRING_VAR="$(dbConnStringSecretPrefix)-$(Environment.Name)"
               CONN_STRING=$(eval "echo \${$CONN_STRING_VAR}")
               
-              # Set the correct paths
-              WORKING_DIR="$(System.ArtifactsDirectory)/$(efArtifactName)/source"
-              PROJECT_PATH="$WORKING_DIR/WeddingApi.csproj"
+              # Make bundle executable
+              chmod +x "$(System.ArtifactsDirectory)/$(efBundleName)/efbundle"
               
-              # List directory contents for debugging
-              echo "Contents of $WORKING_DIR:"
-              ls -la "$WORKING_DIR"
-              
-              # Apply migrations using the published DLL
-              dotnet ef database update \
-                --project "$PROJECT_PATH" \
-                --startup-project "$PROJECT_PATH" \
+              # Run the migration bundle
+              "$(System.ArtifactStagingDirectory)/$(efBundleName)/efbundle" \
                 --connection "$CONN_STRING" \
                 --verbose
-            displayName: 'Apply EF Migrations to Dev'
+            displayName: 'Apply Migrations to Dev'
 
 - stage: Deploy_Prod_Migrations
   displayName: 'Deploy Prod DB Migrations'
@@ -139,25 +122,16 @@ stages:
       runOnce:
         deploy:
           steps:
-          - task: UseDotNet@2
-            displayName: 'Use .NET SDK'
-            inputs:
-              packageType: 'sdk'
-              version: '8.x'
-
-          - script: dotnet tool install --global dotnet-ef
-            displayName: 'Install/Update dotnet-ef tool on agent'
-
           - task: DownloadBuildArtifacts@1
-            displayName: 'Download EF Migrator Artifact'
+            displayName: 'Download Migration Bundle'
             inputs:
               buildType: 'current'
               downloadType: 'single'
-              artifactName: '$(efArtifactName)'
+              artifactName: '$(efBundleName)'
               downloadPath: '$(System.ArtifactsDirectory)'
 
           - task: AzureKeyVault@2
-            displayName: 'Get Full DB Connection String from Key Vault'
+            displayName: 'Get DB Connection String from Key Vault'
             inputs:
               azureSubscription: 'Azure Subscription'
               KeyVaultName: '$(capabilityKeyVaultName)'
@@ -165,22 +139,15 @@ stages:
               RunAsPreJob: false
 
           - script: |
-              # Get connection string from environment variables set by KeyVault task
+              # Get connection string from environment variables
               CONN_STRING_VAR="$(dbConnStringSecretPrefix)-$(Environment.Name)"
               CONN_STRING=$(eval "echo \${$CONN_STRING_VAR}")
               
-              # Set the correct paths
-              WORKING_DIR="$(System.ArtifactsDirectory)/$(efArtifactName)/source"
-              PROJECT_PATH="$WORKING_DIR/WeddingApi.csproj"
+              # Make bundle executable
+              chmod +x "$(System.ArtifactsDirectory)/$(efBundleName)/efbundle"
               
-              # List directory contents for debugging
-              echo "Contents of $WORKING_DIR:"
-              ls -la "$WORKING_DIR"
-              
-              # Apply migrations using the published DLL
-              dotnet ef database update \
-                --project "$PROJECT_PATH" \
-                --startup-project "$PROJECT_PATH" \
+              # Run the migration bundle
+              "$(System.ArtifactStagingDirectory)/$(efBundleName)/efbundle" \
                 --connection "$CONN_STRING" \
                 --verbose
-            displayName: 'Apply EF Migrations to Prod' 
+            displayName: 'Apply Migrations to Prod' 

@@ -109,9 +109,15 @@ stages:
               CONN_STRING_VAR="$(dbConnStringSecretPrefix)-$(Environment.Name)"
               CONN_STRING=$(eval "echo \${$CONN_STRING_VAR}")
               
-              # Apply migrations
-              cd "$(System.ArtifactsDirectory)/$(efArtifactName)/source"
-              dotnet ef database update --assembly WeddingApi.dll --startup-assembly WeddingApi.dll --connection "$CONN_STRING"
+              # Change to the directory containing the published DLL
+              cd "$(System.ArtifactsDirectory)/$(efArtifactName)"
+              
+              # Apply migrations using the published DLL
+              dotnet ef database update \
+                --project "$(projectPath)" \
+                --startup-project "$(projectPath)" \
+                --connection "$CONN_STRING" \
+                --verbose
             displayName: 'Apply EF Migrations to Dev'
 
 - stage: Deploy_Prod_Migrations
@@ -158,7 +164,13 @@ stages:
               CONN_STRING_VAR="$(dbConnStringSecretPrefix)-$(Environment.Name)"
               CONN_STRING=$(eval "echo \${$CONN_STRING_VAR}")
               
-              # Apply migrations
-              cd "$(System.ArtifactsDirectory)/$(efArtifactName)/source"
-              dotnet ef database update --assembly WeddingApi.dll --startup-assembly WeddingApi.dll --connection "$CONN_STRING"
+              # Change to the directory containing the published DLL
+              cd "$(System.ArtifactsDirectory)/$(efArtifactName)"
+              
+              # Apply migrations using the published DLL
+              dotnet ef database update \
+                --project "$(projectPath)" \
+                --startup-project "$(projectPath)" \
+                --connection "$CONN_STRING" \
+                --verbose
             displayName: 'Apply EF Migrations to Prod' 

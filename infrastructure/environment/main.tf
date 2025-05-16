@@ -148,4 +148,35 @@ resource "azurerm_key_vault_access_policy" "pipeline_access_to_kv" {
     "Restore",
     "Purge"
   ]
+}
+
+resource "azurerm_key_vault_access_policy" "admin_access_to_kv" {
+  key_vault_id = data.azurerm_key_vault.wedding_api_kv.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = var.admin_object_id
+
+  secret_permissions = [
+    "Get",
+    "List",
+    "Set",
+    "Delete",
+    "Recover",
+    "Backup",
+    "Restore",
+    "Purge"
+  ]
+  
+  key_permissions = [
+    "Get",
+    "List",
+    "Create",
+    "Delete"
+  ]
+  
+  certificate_permissions = [
+    "Get",
+    "List",
+    "Create",
+    "Delete"
+  ]
 } 

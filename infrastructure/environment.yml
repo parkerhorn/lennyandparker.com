@@ -16,7 +16,7 @@ stages:
       jobDisplayName: 'Terraform Deploy Dev'
       workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/environment'
       backendAzureRmKey: 'environment-dev.tfstate'
-      commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)" -var-file="dev.tfvars"'
+      commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)" -var="admin_object_id=$(AdminAccountObjectID)" -var-file="dev.tfvars"'
 
 - stage: Deploy_Prod_Environment
   displayName: 'Deploy Prod Environment'
@@ -28,4 +28,4 @@ stages:
       jobDisplayName: 'Terraform Deploy Prod'
       workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/environment'
       backendAzureRmKey: 'environment-prod.tfstate'
-      commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)" -var-file="prod.tfvars"' 
+      commandOptions: '-var="service_principal_id=$(SERVICE_PRINCIPAL_ID)" -var="admin_object_id=$(AdminAccountObjectID)" -var-file="prod.tfvars"' 

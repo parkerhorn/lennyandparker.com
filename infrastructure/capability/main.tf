@@ -84,7 +84,13 @@ resource "azurerm_key_vault" "wedding_api_kv" {
 
     secret_permissions = [
       "Get",
-      "List"
+      "List",
+      "Set",
+      "Delete",
+      "Recover",
+      "Backup",
+      "Restore",
+      "Purge"
     ]
   }
 }

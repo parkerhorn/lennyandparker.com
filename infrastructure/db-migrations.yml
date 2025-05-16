@@ -109,13 +109,18 @@ stages:
               CONN_STRING_VAR="$(dbConnStringSecretPrefix)-$(Environment.Name)"
               CONN_STRING=$(eval "echo \${$CONN_STRING_VAR}")
               
-              # Change to the directory containing the published DLL
-              cd "$(System.ArtifactsDirectory)/$(efArtifactName)"
+              # Set the correct paths
+              WORKING_DIR="$(System.ArtifactsDirectory)/$(efArtifactName)"
+              PROJECT_PATH="$WORKING_DIR/WeddingApi.csproj"
+              
+              # List directory contents for debugging
+              echo "Contents of $WORKING_DIR:"
+              ls -la "$WORKING_DIR"
               
               # Apply migrations using the published DLL
               dotnet ef database update \
-                --project "$(projectPath)" \
-                --startup-project "$(projectPath)" \
+                --project "$PROJECT_PATH" \
+                --startup-project "$PROJECT_PATH" \
                 --connection "$CONN_STRING" \
                 --verbose
             displayName: 'Apply EF Migrations to Dev'
@@ -164,13 +169,18 @@ stages:
               CONN_STRING_VAR="$(dbConnStringSecretPrefix)-$(Environment.Name)"
               CONN_STRING=$(eval "echo \${$CONN_STRING_VAR}")
               
-              # Change to the directory containing the published DLL
-              cd "$(System.ArtifactsDirectory)/$(efArtifactName)"
+              # Set the correct paths
+              WORKING_DIR="$(System.ArtifactsDirectory)/$(efArtifactName)"
+              PROJECT_PATH="$WORKING_DIR/WeddingApi.csproj"
+              
+              # List directory contents for debugging
+              echo "Contents of $WORKING_DIR:"
+              ls -la "$WORKING_DIR"
               
               # Apply migrations using the published DLL
               dotnet ef database update \
-                --project "$(projectPath)" \
-                --startup-project "$(projectPath)" \
+                --project "$PROJECT_PATH" \
+                --startup-project "$PROJECT_PATH" \
                 --connection "$CONN_STRING" \
                 --verbose
             displayName: 'Apply EF Migrations to Prod' 

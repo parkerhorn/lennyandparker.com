@@ -110,7 +110,7 @@ stages:
               CONN_STRING=$(eval "echo \${$CONN_STRING_VAR}")
               
               # Set the correct paths
-              WORKING_DIR="$(System.ArtifactsDirectory)/$(efArtifactName)"
+              WORKING_DIR="$(System.ArtifactsDirectory)/$(efArtifactName)/source"
               PROJECT_PATH="$WORKING_DIR/WeddingApi.csproj"
               
               # List directory contents for debugging
@@ -170,7 +170,7 @@ stages:
               CONN_STRING=$(eval "echo \${$CONN_STRING_VAR}")
               
               # Set the correct paths
-              WORKING_DIR="$(System.ArtifactsDirectory)/$(efArtifactName)"
+              WORKING_DIR="$(System.ArtifactsDirectory)/$(efArtifactName)/source"
               PROJECT_PATH="$WORKING_DIR/WeddingApi.csproj"
               
               # List directory contents for debugging

@@ -136,7 +136,7 @@ resource "azurerm_key_vault_access_policy" "web_app_access_to_kv" {
 resource "azurerm_key_vault_access_policy" "pipeline_access_to_kv" {
   key_vault_id = data.azurerm_key_vault.wedding_api_kv.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = var.service_principal_id
+  object_id    = data.azurerm_client_config.current.object_id
 
   secret_permissions = [
     "Get",

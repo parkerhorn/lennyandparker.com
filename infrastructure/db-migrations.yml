@@ -86,6 +86,14 @@ stages:
               artifactName: '$(efBundleName)'
               downloadPath: '$(System.ArtifactsDirectory)'
 
+          - task: AzureKeyVault@2
+            displayName: 'Get DB Connection String from Key Vault'
+            inputs:
+              azureSubscription: 'Azure Subscription'
+              KeyVaultName: '$(capabilityKeyVaultName)'
+              SecretsFilter: '$(dbConnStringSecretPrefix)-$(Environment.Name)'
+              RunAsPreJob: false
+
           - script: |
               # Debug info
               echo "Artifact Directory: $(System.ArtifactsDirectory)"
@@ -95,8 +103,12 @@ stages:
               # Make bundle executable
               chmod +x "$(System.ArtifactsDirectory)/$(efBundleName)/efbundle"
               
-              # Run the migration bundle
-              "$(System.ArtifactsDirectory)/$(efBundleName)/efbundle"
+              # Get connection string from Key Vault secret
+              CONN_STRING_VAR="$(dbConnStringSecretPrefix)-$(Environment.Name)"
+              CONN_STRING="${!CONN_STRING_VAR}"
+              
+              # Run the migration bundle with connection string
+              "$(System.ArtifactsDirectory)/$(efBundleName)/efbundle" --connection "$CONN_STRING"
             displayName: 'Apply Migrations to Dev'
 
 - stage: Deploy_Prod_Migrations
@@ -121,6 +133,14 @@ stages:
               artifactName: '$(efBundleName)'
               downloadPath: '$(System.ArtifactsDirectory)'
 
+          - task: AzureKeyVault@2
+            displayName: 'Get DB Connection String from Key Vault'
+            inputs:
+              azureSubscription: 'Azure Subscription'
+              KeyVaultName: '$(capabilityKeyVaultName)'
+              SecretsFilter: '$(dbConnStringSecretPrefix)-$(Environment.Name)'
+              RunAsPreJob: false
+
           - script: |
               # Debug info
               echo "Artifact Directory: $(System.ArtifactsDirectory)"
@@ -130,6 +150,10 @@ stages:
               # Make bundle executable
               chmod +x "$(System.ArtifactsDirectory)/$(efBundleName)/efbundle"
               
-              # Run the migration bundle
-              "$(System.ArtifactsDirectory)/$(efBundleName)/efbundle"
+              # Get connection string from Key Vault secret
+              CONN_STRING_VAR="$(dbConnStringSecretPrefix)-$(Environment.Name)"
+              CONN_STRING="${!CONN_STRING_VAR}"
+              
+              # Run the migration bundle with connection string
+              "$(System.ArtifactsDirectory)/$(efBundleName)/efbundle" --connection "$CONN_STRING"
             displayName: 'Apply Migrations to Prod' 

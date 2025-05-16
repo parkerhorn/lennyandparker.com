@@ -54,7 +54,7 @@ stages:
         dotnet ef migrations bundle \
           --project $(projectPath) \
           --configuration $(buildConfiguration) \
-          --output $(Build.ArtifactStagingDirectory)/$(efBundleName)
+          --output $(Build.ArtifactStagingDirectory)/efbundle
       displayName: 'Create EF Migration Bundle'
 
     - task: PublishBuildArtifacts@1
@@ -86,26 +86,17 @@ stages:
               artifactName: '$(efBundleName)'
               downloadPath: '$(System.ArtifactsDirectory)'
 
-          - task: AzureKeyVault@2
-            displayName: 'Get DB Connection String from Key Vault'
-            inputs:
-              azureSubscription: 'Azure Subscription'
-              KeyVaultName: '$(capabilityKeyVaultName)'
-              SecretsFilter: '$(dbConnStringSecretPrefix)-$(Environment.Name)'
-              RunAsPreJob: false
-
           - script: |
-              # Get connection string from environment variables
-              CONN_STRING_VAR="$(dbConnStringSecretPrefix)-$(Environment.Name)"
-              CONN_STRING=$(eval "echo \${$CONN_STRING_VAR}")
+              # Debug info
+              echo "Artifact Directory: $(System.ArtifactsDirectory)"
+              echo "Bundle Name: $(efBundleName)"
+              ls -la "$(System.ArtifactsDirectory)/$(efBundleName)"
               
               # Make bundle executable
               chmod +x "$(System.ArtifactsDirectory)/$(efBundleName)/efbundle"
               
               # Run the migration bundle
-              "$(System.ArtifactStagingDirectory)/$(efBundleName)/efbundle" \
-                --connection "$CONN_STRING" \
-                --verbose
+              "$(System.ArtifactsDirectory)/$(efBundleName)/efbundle"
             displayName: 'Apply Migrations to Dev'
 
 - stage: Deploy_Prod_Migrations
@@ -130,24 +121,15 @@ stages:
               artifactName: '$(efBundleName)'
               downloadPath: '$(System.ArtifactsDirectory)'
 
-          - task: AzureKeyVault@2
-            displayName: 'Get DB Connection String from Key Vault'
-            inputs:
-              azureSubscription: 'Azure Subscription'
-              KeyVaultName: '$(capabilityKeyVaultName)'
-              SecretsFilter: '$(dbConnStringSecretPrefix)-$(Environment.Name)'
-              RunAsPreJob: false
-
           - script: |
-              # Get connection string from environment variables
-              CONN_STRING_VAR="$(dbConnStringSecretPrefix)-$(Environment.Name)"
-              CONN_STRING=$(eval "echo \${$CONN_STRING_VAR}")
+              # Debug info
+              echo "Artifact Directory: $(System.ArtifactsDirectory)"
+              echo "Bundle Name: $(efBundleName)"
+              ls -la "$(System.ArtifactsDirectory)/$(efBundleName)"
               
               # Make bundle executable
               chmod +x "$(System.ArtifactsDirectory)/$(efBundleName)/efbundle"
               
               # Run the migration bundle
-              "$(System.ArtifactStagingDirectory)/$(efBundleName)/efbundle" \
-                --connection "$CONN_STRING" \
-                --verbose
+              "$(System.ArtifactsDirectory)/$(efBundleName)/efbundle"
             displayName: 'Apply Migrations to Prod' 

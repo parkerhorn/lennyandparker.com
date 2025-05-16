@@ -55,6 +55,14 @@ resource "azurerm_mssql_server" "wedding_sql_server" {
   tags                        = local.tags
 }
 
+# Add firewall rule to allow Azure services
+resource "azurerm_mssql_firewall_rule" "allow_azure_services" {
+  name             = "AllowAzureServices"
+  server_id        = azurerm_mssql_server.wedding_sql_server.id
+  start_ip_address = "0.0.0.0"
+  end_ip_address   = "0.0.0.0"
+}
+
 resource "azurerm_key_vault" "wedding_api_kv" {
   name                        = "lennyandparkerweddingkv"
   location                    = data.azurerm_resource_group.wedding_api_capability_rg.location

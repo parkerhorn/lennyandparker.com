@@ -78,7 +78,7 @@ resource "azurerm_mssql_database" "wedding_api_db" {
 }
 
 resource "azurerm_key_vault_secret" "database_connection_string" {
-  name         = "WeddingApiDbConnectionString-${local.environment}"
+  name         = "WeddingApiDbConnectionString${local.environment}"
   value        = "Server=tcp:${data.azurerm_mssql_server.wedding_sql_server.fully_qualified_domain_name},1433;Initial Catalog=${azurerm_mssql_database.wedding_api_db.name};Persist Security Info=False;User ID=${data.azurerm_mssql_server.wedding_sql_server.administrator_login};Password=${data.azurerm_key_vault_secret.sql_admin_password.value};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
   key_vault_id = data.azurerm_key_vault.wedding_api_kv.id
   tags         = local.tags

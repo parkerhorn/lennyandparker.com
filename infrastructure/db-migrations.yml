@@ -91,7 +91,7 @@ stages:
             inputs:
               azureSubscription: 'Azure Subscription'
               KeyVaultName: '$(capabilityKeyVaultName)'
-              SecretsFilter: '$(dbConnStringSecretPrefix)-$(Environment.Name)'
+              SecretsFilter: '$(dbConnStringSecretPrefix)$(Environment.Name)'
               RunAsPreJob: false
 
           - script: |
@@ -103,12 +103,12 @@ stages:
               # Make bundle executable
               chmod +x "$(System.ArtifactsDirectory)/$(efBundleName)/efbundle"
               
-              # Get connection string from Key Vault secret
-              CONN_STRING_VAR="$(dbConnStringSecretPrefix)-$(Environment.Name)"
-              CONN_STRING="${!CONN_STRING_VAR}"
+              # List all environment variables to debug
+              echo "Available environment variables:"
+              env | grep WeddingApi
               
               # Run the migration bundle with connection string
-              "$(System.ArtifactsDirectory)/$(efBundleName)/efbundle" --connection "$CONN_STRING"
+              "$(System.ArtifactsDirectory)/$(efBundleName)/efbundle" --connection "$(WeddingApiDbConnectionStringdev)"
             displayName: 'Apply Migrations to Dev'
 
 - stage: Deploy_Prod_Migrations
@@ -138,7 +138,7 @@ stages:
             inputs:
               azureSubscription: 'Azure Subscription'
               KeyVaultName: '$(capabilityKeyVaultName)'
-              SecretsFilter: '$(dbConnStringSecretPrefix)-$(Environment.Name)'
+              SecretsFilter: '$(dbConnStringSecretPrefix)$(Environment.Name)'
               RunAsPreJob: false
 
           - script: |
@@ -150,10 +150,10 @@ stages:
               # Make bundle executable
               chmod +x "$(System.ArtifactsDirectory)/$(efBundleName)/efbundle"
               
-              # Get connection string from Key Vault secret
-              CONN_STRING_VAR="$(dbConnStringSecretPrefix)-$(Environment.Name)"
-              CONN_STRING="${!CONN_STRING_VAR}"
+              # List all environment variables to debug
+              echo "Available environment variables:"
+              env | grep WeddingApi
               
               # Run the migration bundle with connection string
-              "$(System.ArtifactsDirectory)/$(efBundleName)/efbundle" --connection "$CONN_STRING"
+              "$(System.ArtifactsDirectory)/$(efBundleName)/efbundle" --connection "$(WeddingApiDbConnectionStringprod)"
             displayName: 'Apply Migrations to Prod' 

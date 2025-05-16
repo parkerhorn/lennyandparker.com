@@ -125,8 +125,7 @@ resource "azurerm_key_vault" "wedding_api_kv" {
   }
 }
 
-resource "azurerm_key_vault_secret" "sql_admin_password" {
-  name         = "sql-server-admin-password"
-  value        = random_password.sql_admin_password.result
-  key_vault_id = azurerm_key_vault.wedding_api_kv.id
-} 
+output "sql_admin_password" {
+  value     = random_password.sql_admin_password.result
+  sensitive = true
+}

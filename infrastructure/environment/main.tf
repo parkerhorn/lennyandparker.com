@@ -14,6 +14,16 @@ terraform {
   }
 }
 
+data "terraform_remote_state" "capability" {
+  backend = "azurerm"
+  config = {
+    resource_group_name  = "wedding-api-capability-rg"
+    storage_account_name = "weddingapistate"
+    container_name       = "tfstate"
+    key                  = "capability.tfstate"
+  }
+}
+
 provider "azurerm" {
   features {}
 }
@@ -49,6 +59,8 @@ locals {
     ManagedBy   = "Terraform"
     Type        = "Environment"
   }
+  sql_admin_password = data.terraform_remote_state.capability.outputs.sql_admin_password
+  connection_string = "Server=tcp:${data.azurerm_mssql_server.wedding_sql_server.fully_qualified_domain_name},1433;Initial Catalog=${azurerm_mssql_database.wedding_api_db.name};Persist Security Info=False;User ID=${data.azurerm_mssql_server.wedding_sql_server.administrator_login};Password=${local.sql_admin_password};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
 }
 
 resource "azurerm_resource_group" "wedding_api_env_rg" {
@@ -79,7 +91,7 @@ resource "azurerm_mssql_database" "wedding_api_db" {
 
 resource "azurerm_key_vault_secret" "database_connection_string" {
   name         = "WeddingApiDbConnectionString${local.environment}"
-  value        = "Server=tcp:${data.azurerm_mssql_server.wedding_sql_server.fully_qualified_domain_name},1433;Initial Catalog=${azurerm_mssql_database.wedding_api_db.name};Persist Security Info=False;User ID=${data.azurerm_mssql_server.wedding_sql_server.administrator_login};Password=${data.azurerm_key_vault_secret.sql_admin_password.value};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+  value        = local.connection_string
   key_vault_id = data.azurerm_key_vault.wedding_api_kv.id
   tags         = local.tags
 

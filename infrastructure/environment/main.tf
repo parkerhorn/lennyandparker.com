@@ -45,11 +45,6 @@ data "azurerm_key_vault" "wedding_api_kv" {
   resource_group_name = data.azurerm_resource_group.wedding_api_capability_rg.name
 }
 
-data "azurerm_key_vault_secret" "sql_admin_password" {
-  name         = "sql-server-admin-password"
-  key_vault_id = data.azurerm_key_vault.wedding_api_kv.id
-}
-
 locals {
   environment = var.environment
   location    = var.location

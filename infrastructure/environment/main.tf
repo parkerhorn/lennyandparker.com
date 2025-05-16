@@ -91,7 +91,6 @@ resource "azurerm_key_vault_secret" "database_connection_string" {
   tags         = local.tags
 
   depends_on = [
-    data.azurerm_key_vault_secret.sql_admin_password,
     azurerm_mssql_database.wedding_api_db
   ]
 }

@@ -14,7 +14,7 @@ pool:
 variables:
   buildConfiguration: 'Release'
   projectPath: 'source/WeddingApi.csproj'
-  solutionPath: 'source/WeddingApi.sln'
+  solutionPath: 'WeddingApi.sln'
   efBundleName: 'efbundle'
   capabilityKeyVaultName: 'lennyandparkerweddingkv'
   dbConnStringSecretPrefix: 'WeddingApiDbConnectionString'

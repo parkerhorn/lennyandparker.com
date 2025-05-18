@@ -6,6 +6,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WeddingApi", "source\Weddin
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WeddingApi.UnitTests", "tests\WeddingApi.UnitTests\WeddingApi.UnitTests.csproj", "{BABE29F6-5D41-4C9B-B13C-C33F736DE5B1}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WeddingApi.IntegrationTests", "tests\WeddingApi.IntegrationTests\WeddingApi.IntegrationTests.csproj", "{C67E22D2-F95C-4B8D-A36D-7A19002F2123}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,6 +22,10 @@ Global
 		{BABE29F6-5D41-4C9B-B13C-C33F736DE5B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BABE29F6-5D41-4C9B-B13C-C33F736DE5B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BABE29F6-5D41-4C9B-B13C-C33F736DE5B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C67E22D2-F95C-4B8D-A36D-7A19002F2123}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C67E22D2-F95C-4B8D-A36D-7A19002F2123}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C67E22D2-F95C-4B8D-A36D-7A19002F2123}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C67E22D2-F95C-4B8D-A36D-7A19002F2123}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

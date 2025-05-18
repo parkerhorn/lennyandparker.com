@@ -59,7 +59,7 @@ public static class WeddingApi
                     statusCode: 503,
                     title: "Health Check Failed",
                     detail: ex.Message,
-                    instance: "/health"); // Updated instance path
+                    instance: "/health");
             }
         })
             .WithName("HealthCheck")

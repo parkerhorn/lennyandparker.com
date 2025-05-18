@@ -41,7 +41,7 @@ stages:
         arguments: '--configuration Release'
 
     - task: DotNetCoreCLI@2
-      displayName: 'Run tests'
+      displayName: 'Run unit tests'
       inputs:
         command: 'test'
         projects: 'tests/WeddingApi.UnitTests/WeddingApi.UnitTests.csproj'
@@ -63,6 +63,13 @@ stages:
         ArtifactName: 'drop'
         publishLocation: 'Container'
 
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Integration Tests'
+      inputs:
+        PathtoPublish: 'tests/WeddingApi.IntegrationTests'
+        ArtifactName: 'integration-tests'
+        publishLocation: 'Container'
+
 - stage: Deploy_Dev
   dependsOn: Build
   condition: succeeded()
@@ -81,8 +88,46 @@ stages:
               package: '$(Pipeline.Workspace)/drop/*.zip'
               deploymentMethod: 'auto'
 
-- stage: Deploy_Prod
+- stage: Test_Dev
+  displayName: 'Test Dev Integration'
   dependsOn: Deploy_Dev
+  jobs:
+  - job: RunIntegrationTests
+    displayName: 'Run Integration Tests'
+    steps:
+    - task: UseDotNet@2
+      displayName: 'Use .NET 8.0 SDK'
+      inputs:
+        packageType: 'sdk'
+        version: '8.0.x'
+        includePreviewVersions: false
+
+    - task: DownloadBuildArtifacts@1
+      displayName: 'Download Integration Tests'
+      inputs:
+        buildType: 'current'
+        downloadType: 'single'
+        artifactName: 'integration-tests'
+        downloadPath: '$(System.ArtifactsDirectory)'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Install dependencies'
+      inputs:
+        command: 'restore'
+        projects: '$(System.ArtifactsDirectory)/integration-tests/WeddingApi.IntegrationTests.csproj'
+        feedsToUse: 'select'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Run Integration Tests against Dev'
+      inputs:
+        command: 'test'
+        projects: '$(System.ArtifactsDirectory)/integration-tests/WeddingApi.IntegrationTests.csproj'
+        arguments: '--configuration Release'
+      env:
+        API_BASE_URL: 'https://wedding-api-dev.azurewebsites.net'
+
+- stage: Deploy_Prod
+  dependsOn: Test_Dev
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
   jobs:
   - deployment: DeployToProd
@@ -97,4 +142,43 @@ stages:
               azureSubscription: 'Azure Subscription'
               appName: 'wedding-api-prod'
               package: '$(Pipeline.Workspace)/drop/*.zip'
-              deploymentMethod: 'auto' 
+              deploymentMethod: 'auto'
+
+- stage: Test_Prod
+  displayName: 'Test Prod Integration'
+  dependsOn: Deploy_Prod
+  condition: succeeded()
+  jobs:
+  - job: RunIntegrationTests
+    displayName: 'Run Integration Tests'
+    steps:
+    - task: UseDotNet@2
+      displayName: 'Use .NET 8.0 SDK'
+      inputs:
+        packageType: 'sdk'
+        version: '8.0.x'
+        includePreviewVersions: false
+
+    - task: DownloadBuildArtifacts@1
+      displayName: 'Download Integration Tests'
+      inputs:
+        buildType: 'current'
+        downloadType: 'single'
+        artifactName: 'integration-tests'
+        downloadPath: '$(System.ArtifactsDirectory)'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Install dependencies'
+      inputs:
+        command: 'restore'
+        projects: '$(System.ArtifactsDirectory)/integration-tests/WeddingApi.IntegrationTests.csproj'
+        feedsToUse: 'select'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Run Integration Tests against Prod'
+      inputs:
+        command: 'test'
+        projects: '$(System.ArtifactsDirectory)/integration-tests/WeddingApi.IntegrationTests.csproj'
+        arguments: '--configuration Release'
+      env:
+        API_BASE_URL: 'https://wedding-api-prod.azurewebsites.net' 

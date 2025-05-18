@@ -76,7 +76,7 @@ stages:
   condition: succeeded()
   jobs:
   - deployment: DeployToDev
-    displayName: 'Deploy App to Dev'
+    displayName: 'Deploy API to Web App'
     environment: 'dev'
     strategy:
       runOnce:
@@ -91,7 +91,7 @@ stages:
               deploymentMethod: 'auto'
               
   - job: TestDevEnvironment
-    displayName: 'Integration Test - Dev'
+    displayName: 'Integration Test'
     dependsOn: DeployToDev
     steps:
     - task: UseDotNet@2
@@ -117,11 +117,11 @@ stages:
         feedsToUse: 'select'
 
     - task: DotNetCoreCLI@2
-      displayName: 'Run Integration Tests against Dev'
+      displayName: 'Run Integration Tests'
       inputs:
         command: 'test'
         projects: '$(System.ArtifactsDirectory)/drop/integration-tests/WeddingApi.IntegrationTests.csproj'
-        arguments: '--configuration Release'
+        arguments: '--configuration Release --logger:"console;verbosity=detailed"'
       env:
         API_BASE_URL: 'https://wedding-api-dev.azurewebsites.net'
 
@@ -131,7 +131,7 @@ stages:
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
   jobs:
   - deployment: DeployToProd
-    displayName: 'Deploy App to Prod'
+    displayName: 'Deploy API to Web App'
     environment: 'prod'
     strategy:
       runOnce:
@@ -146,7 +146,7 @@ stages:
               deploymentMethod: 'auto'
               
   - job: TestProdEnvironment
-    displayName: 'Integration Test - Prod'
+    displayName: 'Integration Test'
     dependsOn: DeployToProd
     steps:
     - task: UseDotNet@2
@@ -172,10 +172,10 @@ stages:
         feedsToUse: 'select'
 
     - task: DotNetCoreCLI@2
-      displayName: 'Run Integration Tests against Prod'
+      displayName: 'Run Integration Tests'
       inputs:
         command: 'test'
         projects: '$(System.ArtifactsDirectory)/drop/integration-tests/WeddingApi.IntegrationTests.csproj'
-        arguments: '--configuration Release'
+        arguments: '--configuration Release --logger:"console;verbosity=detailed"'
       env:
         API_BASE_URL: 'https://wedding-api-prod.azurewebsites.net' 

@@ -23,7 +23,7 @@ public interface IGenericAsyncRepository<T> where T : class
         bool distinct = false
         );
 
-    public Task<T?> GetByIdAsync(object id);
+    public Task<T?> GetByIdAsync(object id, object value);
 
     public ValueTask<EntityEntry<T>> AddAsync(T entity, CancellationToken cToken = default);
 

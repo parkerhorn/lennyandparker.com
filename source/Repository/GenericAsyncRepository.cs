@@ -52,8 +52,12 @@ public class GenericAsyncRepository<T> : IGenericAsyncRepository<T> where T : cl
         return await (orderBy != null ? orderBy(query).ToListAsync(cToken) : query.ToListAsync(cToken));
     }
 
-    public async Task<T?> GetByIdAsync(object id)
+    public async Task<T?> GetByIdAsync(object id, object value)
     {
+        if (value != null)
+        {
+            return await _dbSet.FindAsync(id, value);
+        }
         return await _dbSet.FindAsync(id);
     }
 

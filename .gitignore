@@ -12,4 +12,6 @@
 /source/appsettings.json
 /source/appsettings.Production.json
 /source/appsettings.Staging.json
-
+/tests/WeddingApi.UnitTests/bin
+/tests/WeddingApi.UnitTests/obj
+/tests/WeddingApi.UnitTests/appsettings.Development.json

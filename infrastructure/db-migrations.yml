@@ -4,8 +4,8 @@ trigger:
       - main
   paths:
     include:
-      - '**/Migrations/**'
-      - '**/*.csproj'
+      - 'source/Migrations/**'
+      - 'source/**/*.csproj'
       - 'infrastructure/db-migrations.yml'
 
 pool:

@@ -18,13 +18,31 @@ public class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<RSVP>(entity =>
         {
-            //TODO Add requirements for name and address
-
             entity.Property(i => i.Email)
                 .IsRequired()
                 .HasMaxLength(100);
 
+            entity.Property(i => i.FirstName)
+                .IsRequired()
+                .HasMaxLength(50);
+
+            entity.Property(i => i.LastName)
+                .IsRequired()
+                .HasMaxLength(50);
+
+            entity.Property(i => i.IsAttending)
+                .IsRequired();
+
             entity.Property(i => i.DietaryRestrictions)
+                .HasMaxLength(500);
+
+            entity.Property(i => i.AccessibilityRequirements)
+                .HasMaxLength(500);
+                
+            entity.Property(i => i.Pronouns)
+                .HasMaxLength(20);
+
+            entity.Property(i => i.Note)
                 .HasMaxLength(500);
         });
     }

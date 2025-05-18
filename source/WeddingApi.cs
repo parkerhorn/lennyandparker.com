@@ -111,6 +111,7 @@ public static class WeddingApi
             existingRsvp.DietaryRestrictions = rsvp.DietaryRestrictions;
             existingRsvp.AccessibilityRequirements = rsvp.AccessibilityRequirements;
             existingRsvp.Pronouns = rsvp.Pronouns;
+            existingRsvp.Note = rsvp.Note;
             existingRsvp.UpdatedAt = DateTime.UtcNow;
 
             var result = await service.UpdateAndSaveAsync(existingRsvp);

@@ -55,6 +55,14 @@ resource "azurerm_mssql_server" "wedding_sql_server" {
   tags                        = local.tags
 }
 
+# Add firewall rule to allow Azure services
+resource "azurerm_mssql_firewall_rule" "allow_azure_services" {
+  name             = "AllowAzureServices"
+  server_id        = azurerm_mssql_server.wedding_sql_server.id
+  start_ip_address = "0.0.0.0"
+  end_ip_address   = "0.0.0.0"
+}
+
 resource "azurerm_key_vault" "wedding_api_kv" {
   name                        = "lennyandparkerweddingkv"
   location                    = data.azurerm_resource_group.wedding_api_capability_rg.location
@@ -84,13 +92,48 @@ resource "azurerm_key_vault" "wedding_api_kv" {
 
     secret_permissions = [
       "Get",
-      "List"
+      "List",
+      "Set",
+      "Delete",
+      "Recover",
+      "Backup",
+      "Restore",
+      "Purge"
+    ]
+  }
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = var.admin_object_id
+
+    secret_permissions = [
+      "Get",
+      "List",
+      "Set",
+      "Delete",
+      "Recover",
+      "Backup",
+      "Restore",
+      "Purge"
+    ]
+    
+    key_permissions = [
+      "Get",
+      "List",
+      "Create",
+      "Delete"
+    ]
+    
+    certificate_permissions = [
+      "Get",
+      "List",
+      "Create",
+      "Delete"
     ]
   }
 }
 
-resource "azurerm_key_vault_secret" "sql_admin_password" {
-  name         = "sql-server-admin-password"
-  value        = random_password.sql_admin_password.result
-  key_vault_id = azurerm_key_vault.wedding_api_kv.id
-} 
+output "sql_admin_password" {
+  value     = random_password.sql_admin_password.result
+  sensitive = true
+}

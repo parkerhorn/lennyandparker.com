@@ -5,7 +5,9 @@ trigger:
       - develop
   paths:
     include:
-      - source/**
+      - '**/*.cs'
+      - '**/*.csproj'
+      - 'WeddingApi.sln'
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -19,21 +21,21 @@ stages:
       displayName: 'Restore NuGet packages'
       inputs:
         command: 'restore'
-        projects: 'source/WeddingApi.sln'
+        projects: 'WeddingApi.sln'
         feedsToUse: 'select'
 
     - task: DotNetCoreCLI@2
       displayName: 'Build solution'
       inputs:
         command: 'build'
-        projects: 'source/WeddingApi.sln'
+        projects: 'WeddingApi.sln'
         arguments: '--configuration Release'
 
     - task: DotNetCoreCLI@2
       displayName: 'Run tests'
       inputs:
         command: 'test'
-        projects: 'source/WeddingApi.sln'
+        projects: 'WeddingApi.sln'
         arguments: '--configuration Release --collect:"XPlat Code Coverage"'
 
     - task: DotNetCoreCLI@2
@@ -41,7 +43,7 @@ stages:
       inputs:
         command: 'publish'
         publishWebProjects: false
-        projects: 'source/WeddingApi.sln'
+        projects: 'WeddingApi.sln'
         arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)'
         zipAfterPublish: true
 

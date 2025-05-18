@@ -1,0 +1,159 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - '**/Migrations/**'
+      - '**/*.csproj'
+      - 'infrastructure/db-migrations.yml'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  buildConfiguration: 'Release'
+  projectPath: 'source/WeddingApi.csproj'
+  solutionPath: 'WeddingApi.sln'
+  efBundleName: 'efbundle'
+  capabilityKeyVaultName: 'lennyandparkerweddingkv'
+  dbConnStringSecretPrefix: 'WeddingApiDbConnectionString'
+
+stages:
+- stage: Build
+  displayName: 'Build Migration Bundle'
+  jobs:
+  - job: Build
+    displayName: 'Create EF Migration Bundle'
+    steps:
+    - task: UseDotNet@2
+      displayName: 'Use .NET SDK'
+      inputs:
+        packageType: 'sdk'
+        version: '8.x'
+
+    - script: dotnet tool install --global dotnet-ef
+      displayName: 'Install EF Core tools'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Restore NuGet packages'
+      inputs:
+        command: 'restore'
+        projects: '$(solutionPath)'
+        feedsToUse: 'select'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'Build project'
+      inputs:
+        command: 'build'
+        projects: '$(projectPath)'
+        arguments: '--configuration $(buildConfiguration)'
+
+    - script: |
+        # Create migration bundle
+        dotnet ef migrations bundle \
+          --project $(projectPath) \
+          --configuration $(buildConfiguration) \
+          --output $(Build.ArtifactStagingDirectory)/efbundle
+      displayName: 'Create EF Migration Bundle'
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Migration Bundle'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: '$(efBundleName)'
+        publishLocation: 'Container'
+
+- stage: Deploy_Dev_Migrations
+  displayName: 'Deploy Dev DB Migrations'
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - deployment: DeployDev
+    displayName: 'Apply Migrations to Dev DB'
+    environment: 'dev'
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: DownloadBuildArtifacts@1
+            displayName: 'Download Migration Bundle'
+            inputs:
+              buildType: 'current'
+              downloadType: 'single'
+              artifactName: '$(efBundleName)'
+              downloadPath: '$(System.ArtifactsDirectory)'
+
+          - task: AzureKeyVault@2
+            displayName: 'Get DB Connection String from Key Vault'
+            inputs:
+              azureSubscription: 'Azure Subscription'
+              KeyVaultName: '$(capabilityKeyVaultName)'
+              SecretsFilter: '$(dbConnStringSecretPrefix)$(Environment.Name)'
+              RunAsPreJob: false
+
+          - script: |
+              # Debug info
+              echo "Artifact Directory: $(System.ArtifactsDirectory)"
+              echo "Bundle Name: $(efBundleName)"
+              ls -la "$(System.ArtifactsDirectory)/$(efBundleName)"
+              
+              # Make bundle executable
+              chmod +x "$(System.ArtifactsDirectory)/$(efBundleName)/efbundle"
+              
+              # List all environment variables to debug
+              echo "Available environment variables:"
+              env | grep WeddingApi
+              
+              # Run the migration bundle with connection string
+              "$(System.ArtifactsDirectory)/$(efBundleName)/efbundle" --connection "$(WeddingApiDbConnectionStringdev)"
+            displayName: 'Apply Migrations to Dev'
+
+- stage: Deploy_Prod_Migrations
+  displayName: 'Deploy Prod DB Migrations'
+  dependsOn: Deploy_Dev_Migrations
+  condition: succeeded()
+  jobs:
+  - deployment: DeployProd
+    displayName: 'Apply Migrations to Prod DB'
+    environment: 'prod'
+    pool:
+      vmImage: 'ubuntu-latest'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: DownloadBuildArtifacts@1
+            displayName: 'Download Migration Bundle'
+            inputs:
+              buildType: 'current'
+              downloadType: 'single'
+              artifactName: '$(efBundleName)'
+              downloadPath: '$(System.ArtifactsDirectory)'
+
+          - task: AzureKeyVault@2
+            displayName: 'Get DB Connection String from Key Vault'
+            inputs:
+              azureSubscription: 'Azure Subscription'
+              KeyVaultName: '$(capabilityKeyVaultName)'
+              SecretsFilter: '$(dbConnStringSecretPrefix)$(Environment.Name)'
+              RunAsPreJob: false
+
+          - script: |
+              # Debug info
+              echo "Artifact Directory: $(System.ArtifactsDirectory)"
+              echo "Bundle Name: $(efBundleName)"
+              ls -la "$(System.ArtifactsDirectory)/$(efBundleName)"
+              
+              # Make bundle executable
+              chmod +x "$(System.ArtifactsDirectory)/$(efBundleName)/efbundle"
+              
+              # List all environment variables to debug
+              echo "Available environment variables:"
+              env | grep WeddingApi
+              
+              # Run the migration bundle with connection string
+              "$(System.ArtifactsDirectory)/$(efBundleName)/efbundle" --connection "$(WeddingApiDbConnectionStringprod)"
+            displayName: 'Apply Migrations to Prod' 

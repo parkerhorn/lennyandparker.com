@@ -34,8 +34,10 @@ public class HealthCheckTests : IDisposable
         try
         {
             var jsonElement = JsonDocument.Parse(json).RootElement;
-
-            return JsonSerializer.Serialize(jsonElement, new JsonSerializerOptions { WriteIndented = true });
+            return JsonSerializer.Serialize(jsonElement, new JsonSerializerOptions { 
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
         }
         catch
         {

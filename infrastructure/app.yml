@@ -71,10 +71,12 @@ stages:
         publishLocation: 'Container'
 
 - stage: Deploy_Dev
+  displayName: 'Deploy to Dev'
   dependsOn: Build
   condition: succeeded()
   jobs:
   - deployment: DeployToDev
+    displayName: 'Deploy App to Dev'
     environment: 'dev'
     strategy:
       runOnce:
@@ -87,13 +89,10 @@ stages:
               appName: 'wedding-api-dev'
               package: '$(Pipeline.Workspace)/drop/*.zip'
               deploymentMethod: 'auto'
-
-- stage: Test_Dev
-  displayName: 'Test Dev Integration'
-  dependsOn: Deploy_Dev
-  jobs:
-  - job: RunIntegrationTests
-    displayName: 'Run Integration Tests'
+              
+  - job: TestDevEnvironment
+    displayName: 'Test Dev Integration'
+    dependsOn: DeployToDev
     steps:
     - task: UseDotNet@2
       displayName: 'Use .NET 8.0 SDK'
@@ -127,10 +126,12 @@ stages:
         API_BASE_URL: 'https://wedding-api-dev.azurewebsites.net'
 
 - stage: Deploy_Prod
-  dependsOn: Test_Dev
+  displayName: 'Deploy to Production'
+  dependsOn: Deploy_Dev
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
   jobs:
   - deployment: DeployToProd
+    displayName: 'Deploy App to Prod'
     environment: 'prod'
     strategy:
       runOnce:
@@ -143,14 +144,10 @@ stages:
               appName: 'wedding-api-prod'
               package: '$(Pipeline.Workspace)/drop/*.zip'
               deploymentMethod: 'auto'
-
-- stage: Test_Prod
-  displayName: 'Test Prod Integration'
-  dependsOn: Deploy_Prod
-  condition: succeeded()
-  jobs:
-  - job: RunIntegrationTests
-    displayName: 'Run Integration Tests'
+              
+  - job: TestProdEnvironment
+    displayName: 'Test Prod Integration'
+    dependsOn: DeployToProd
     steps:
     - task: UseDotNet@2
       displayName: 'Use .NET 8.0 SDK'

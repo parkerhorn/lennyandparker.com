@@ -50,7 +50,6 @@ stages:
         arguments: '--configuration $(buildConfiguration)'
 
     - script: |
-        # Create migration bundle
         dotnet ef migrations bundle \
           --project $(projectPath) \
           --configuration $(buildConfiguration) \
@@ -95,19 +94,7 @@ stages:
               RunAsPreJob: false
 
           - script: |
-              # Debug info
-              echo "Artifact Directory: $(System.ArtifactsDirectory)"
-              echo "Bundle Name: $(efBundleName)"
-              ls -la "$(System.ArtifactsDirectory)/$(efBundleName)"
-              
-              # Make bundle executable
               chmod +x "$(System.ArtifactsDirectory)/$(efBundleName)/efbundle"
-              
-              # List all environment variables to debug
-              echo "Available environment variables:"
-              env | grep WeddingApi
-              
-              # Run the migration bundle with connection string
               "$(System.ArtifactsDirectory)/$(efBundleName)/efbundle" --connection "$(WeddingApiDbConnectionStringdev)"
             displayName: 'Apply Migrations to Dev'
 
@@ -142,18 +129,6 @@ stages:
               RunAsPreJob: false
 
           - script: |
-              # Debug info
-              echo "Artifact Directory: $(System.ArtifactsDirectory)"
-              echo "Bundle Name: $(efBundleName)"
-              ls -la "$(System.ArtifactsDirectory)/$(efBundleName)"
-              
-              # Make bundle executable
               chmod +x "$(System.ArtifactsDirectory)/$(efBundleName)/efbundle"
-              
-              # List all environment variables to debug
-              echo "Available environment variables:"
-              env | grep WeddingApi
-              
-              # Run the migration bundle with connection string
               "$(System.ArtifactsDirectory)/$(efBundleName)/efbundle" --connection "$(WeddingApiDbConnectionStringprod)"
             displayName: 'Apply Migrations to Prod' 

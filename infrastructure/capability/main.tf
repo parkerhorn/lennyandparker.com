@@ -55,7 +55,6 @@ resource "azurerm_mssql_server" "wedding_sql_server" {
   tags                        = local.tags
 }
 
-# Add firewall rule to allow Azure services
 resource "azurerm_mssql_firewall_rule" "allow_azure_services" {
   name             = "AllowAzureServices"
   server_id        = azurerm_mssql_server.wedding_sql_server.id

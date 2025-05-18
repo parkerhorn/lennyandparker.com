@@ -48,26 +48,26 @@ stages:
         arguments: '--configuration Release --collect:"XPlat Code Coverage"'
 
     - task: DotNetCoreCLI@2
-      displayName: 'Publish'
+      displayName: 'Publish API'
       inputs:
         command: 'publish'
         publishWebProjects: false
         projects: 'source/WeddingApi.csproj'
-        arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)'
+        arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)/api'
         zipAfterPublish: true
 
+    - task: CopyFiles@2
+      displayName: 'Copy Integration Tests'
+      inputs:
+        SourceFolder: 'tests/WeddingApi.IntegrationTests'
+        Contents: '**/*'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/integration-tests'
+
     - task: PublishBuildArtifacts@1
-      displayName: 'Publish artifacts'
+      displayName: 'Publish all artifacts'
       inputs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
         ArtifactName: 'drop'
-        publishLocation: 'Container'
-
-    - task: PublishBuildArtifacts@1
-      displayName: 'Publish Integration Tests'
-      inputs:
-        PathtoPublish: 'tests/WeddingApi.IntegrationTests'
-        ArtifactName: 'integration-tests'
         publishLocation: 'Container'
 
 - stage: Deploy_Dev
@@ -87,7 +87,7 @@ stages:
             inputs:
               azureSubscription: 'Azure Subscription'
               appName: 'wedding-api-dev'
-              package: '$(Pipeline.Workspace)/drop/*.zip'
+              package: '$(Pipeline.Workspace)/drop/api/*.zip'
               deploymentMethod: 'auto'
               
   - job: TestDevEnvironment
@@ -102,26 +102,26 @@ stages:
         includePreviewVersions: false
 
     - task: DownloadBuildArtifacts@1
-      displayName: 'Download Integration Tests'
+      displayName: 'Download Artifacts'
       inputs:
         buildType: 'current'
         downloadType: 'single'
-        artifactName: 'integration-tests'
+        artifactName: 'drop'
         downloadPath: '$(System.ArtifactsDirectory)'
 
     - task: DotNetCoreCLI@2
       displayName: 'Install dependencies'
       inputs:
         command: 'restore'
-        projects: '$(System.ArtifactsDirectory)/integration-tests/WeddingApi.IntegrationTests.csproj'
+        projects: '$(System.ArtifactsDirectory)/drop/integration-tests/WeddingApi.IntegrationTests.csproj'
         feedsToUse: 'select'
 
     - task: DotNetCoreCLI@2
       displayName: 'Run Integration Tests against Dev'
       inputs:
         command: 'test'
-        projects: '$(System.ArtifactsDirectory)/integration-tests/WeddingApi.IntegrationTests.csproj'
-        arguments: '--configuration Release'
+        projects: '$(System.ArtifactsDirectory)/drop/integration-tests/WeddingApi.IntegrationTests.csproj'
+        arguments: '--configuration Release --logger:"console;verbosity=detailed"'
       env:
         API_BASE_URL: 'https://wedding-api-dev.azurewebsites.net'
 
@@ -142,7 +142,7 @@ stages:
             inputs:
               azureSubscription: 'Azure Subscription'
               appName: 'wedding-api-prod'
-              package: '$(Pipeline.Workspace)/drop/*.zip'
+              package: '$(Pipeline.Workspace)/drop/api/*.zip'
               deploymentMethod: 'auto'
               
   - job: TestProdEnvironment
@@ -157,25 +157,25 @@ stages:
         includePreviewVersions: false
 
     - task: DownloadBuildArtifacts@1
-      displayName: 'Download Integration Tests'
+      displayName: 'Download Artifacts'
       inputs:
         buildType: 'current'
         downloadType: 'single'
-        artifactName: 'integration-tests'
+        artifactName: 'drop'
         downloadPath: '$(System.ArtifactsDirectory)'
 
     - task: DotNetCoreCLI@2
       displayName: 'Install dependencies'
       inputs:
         command: 'restore'
-        projects: '$(System.ArtifactsDirectory)/integration-tests/WeddingApi.IntegrationTests.csproj'
+        projects: '$(System.ArtifactsDirectory)/drop/integration-tests/WeddingApi.IntegrationTests.csproj'
         feedsToUse: 'select'
 
     - task: DotNetCoreCLI@2
       displayName: 'Run Integration Tests against Prod'
       inputs:
         command: 'test'
-        projects: '$(System.ArtifactsDirectory)/integration-tests/WeddingApi.IntegrationTests.csproj'
-        arguments: '--configuration Release'
+        projects: '$(System.ArtifactsDirectory)/drop/integration-tests/WeddingApi.IntegrationTests.csproj'
+        arguments: '--configuration Release --logger:"console;verbosity=detailed"'
       env:
         API_BASE_URL: 'https://wedding-api-prod.azurewebsites.net' 

@@ -121,7 +121,7 @@ stages:
       inputs:
         command: 'test'
         projects: '$(System.ArtifactsDirectory)/drop/integration-tests/WeddingApi.IntegrationTests.csproj'
-        arguments: '--configuration Release --logger:"console;verbosity=detailed"'
+        arguments: '--configuration Release'
       env:
         API_BASE_URL: 'https://wedding-api-dev.azurewebsites.net'
 
@@ -176,6 +176,6 @@ stages:
       inputs:
         command: 'test'
         projects: '$(System.ArtifactsDirectory)/drop/integration-tests/WeddingApi.IntegrationTests.csproj'
-        arguments: '--configuration Release --logger:"console;verbosity=detailed"'
+        arguments: '--configuration Release'
       env:
         API_BASE_URL: 'https://wedding-api-prod.azurewebsites.net' 

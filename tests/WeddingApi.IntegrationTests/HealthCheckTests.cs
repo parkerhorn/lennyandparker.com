@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 using Xunit.Abstractions;
 
 namespace WeddingApi.IntegrationTests;
@@ -12,8 +13,7 @@ public class HealthCheckTests : IDisposable
     public HealthCheckTests(ITestOutputHelper output)
     {
         _output = output;
-        _baseUrl = Environment.GetEnvironmentVariable("API_BASE_URL") ?? 
-            throw new InvalidOperationException("API_BASE_URL environment variable must be set");
+        _baseUrl = Environment.GetEnvironmentVariable("API_BASE_URL") ?? throw new InvalidOperationException("API_BASE_URL environment variable must be set");
         _client = new HttpClient();
     }
 
@@ -21,12 +21,26 @@ public class HealthCheckTests : IDisposable
     public async Task HealthCheck()
     {
         var response = await _client.GetAsync($"{_baseUrl}/health");
-        
+
         response.EnsureSuccessStatusCode();
         
         var content = await response.Content.ReadAsStringAsync();
         
-        _output.WriteLine(content);
+        _output.WriteLine(PrettyPrintJson(content));
+    }
+    
+    private string PrettyPrintJson(string json)
+    {
+        try
+        {
+            var jsonElement = JsonDocument.Parse(json).RootElement;
+
+            return JsonSerializer.Serialize(jsonElement, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch
+        {
+            return json;
+        }
     }
 
     public void Dispose()

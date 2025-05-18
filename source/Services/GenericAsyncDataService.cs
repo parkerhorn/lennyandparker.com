@@ -36,7 +36,7 @@ public class GenericAsyncDataService<TEntity, TContext> : IGenericAsyncDataServi
     {
         try
         {
-            return await _unitOfWork.GetGenericAsyncRepository<TEntity>().GetByIdAsync(id);
+            return await _unitOfWork.GetGenericAsyncRepository<TEntity>().GetByIdAsync(id, null);
         }
         catch (Exception ex)
         {

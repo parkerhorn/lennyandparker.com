@@ -25,7 +25,7 @@ stages:
       inputs:
         versionSpec: '20.x'
 
-    - script: npm ci
+    - script: npm install
       displayName: 'Install dependencies'
       workingDirectory: 'client'
 

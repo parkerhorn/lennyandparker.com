@@ -4,8 +4,8 @@ trigger:
       - main
   paths:
     include:
-      - 'source/Migrations/**'
-      - 'source/**/*.csproj'
+      - 'server/source/Migrations/**'
+      - 'server/source/**/*.csproj'
       - 'infrastructure/db-migrations.yml'
 
 pool:
@@ -13,8 +13,8 @@ pool:
 
 variables:
   buildConfiguration: 'Release'
-  projectPath: 'source/WeddingApi.csproj'
-  solutionPath: 'WeddingApi.sln'
+  projectPath: 'server/source/WeddingApi.csproj'
+  solutionPath: 'server/WeddingApi.sln'
   efBundleName: 'efbundle'
   capabilityKeyVaultName: 'lennyandparkerweddingkv'
   dbConnStringSecretPrefix: 'WeddingApiDbConnectionString'

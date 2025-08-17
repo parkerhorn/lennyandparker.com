@@ -5,11 +5,11 @@ trigger:
       - develop
   paths:
     include:
-      - 'source/**/*.cs'
-      - 'tests/**/*.cs'
-      - 'source/**/*.csproj'
-      - 'tests/**/*.csproj'
-      - 'WeddingApi.sln'
+      - 'server/source/**/*.cs'
+      - 'server/tests/**/*.cs'
+      - 'server/source/**/*.csproj'
+      - 'server/tests/**/*.csproj'
+      - 'server/WeddingApi.sln'
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -30,21 +30,21 @@ stages:
       displayName: 'Restore NuGet packages'
       inputs:
         command: 'restore'
-        projects: 'WeddingApi.sln'
+        projects: 'server/WeddingApi.sln'
         feedsToUse: 'select'
 
     - task: DotNetCoreCLI@2
       displayName: 'Build solution'
       inputs:
         command: 'build'
-        projects: 'WeddingApi.sln'
+        projects: 'server/WeddingApi.sln'
         arguments: '--configuration Release'
 
     - task: DotNetCoreCLI@2
       displayName: 'Run unit tests'
       inputs:
         command: 'test'
-        projects: 'tests/WeddingApi.UnitTests/WeddingApi.UnitTests.csproj'
+        projects: 'server/tests/WeddingApi.UnitTests/WeddingApi.UnitTests.csproj'
         arguments: '--configuration Release --collect:"XPlat Code Coverage"'
 
     - task: DotNetCoreCLI@2
@@ -52,14 +52,14 @@ stages:
       inputs:
         command: 'publish'
         publishWebProjects: false
-        projects: 'source/WeddingApi.csproj'
+        projects: 'server/source/WeddingApi.csproj'
         arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)/api'
         zipAfterPublish: true
 
     - task: CopyFiles@2
       displayName: 'Copy Integration Tests'
       inputs:
-        SourceFolder: 'tests/WeddingApi.IntegrationTests'
+        SourceFolder: 'server/tests/WeddingApi.IntegrationTests'
         Contents: '**/*'
         TargetFolder: '$(Build.ArtifactStagingDirectory)/integration-tests'
 

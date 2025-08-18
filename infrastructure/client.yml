@@ -64,7 +64,7 @@ stages:
           - task: AzureKeyVault@2
             displayName: 'Get secrets from Key Vault'
             inputs:
-              azureSubscription: '$(AzureServiceConnection)'
+              azureSubscription: 'Azure Subscription'
               KeyVaultName: 'lennyandparkerweddingkv'
               SecretsFilter: 'StaticWebAppDeploymentTokendev'
               RunAsPreJob: false
@@ -94,7 +94,7 @@ stages:
           - task: AzureKeyVault@2
             displayName: 'Get secrets from Key Vault'
             inputs:
-              azureSubscription: '$(AzureServiceConnection)'
+              azureSubscription: 'Azure Subscription'
               KeyVaultName: 'lennyandparkerweddingkv'
               SecretsFilter: 'StaticWebAppDeploymentTokenprod'
               RunAsPreJob: false

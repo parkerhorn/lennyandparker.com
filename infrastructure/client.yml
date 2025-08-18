@@ -38,7 +38,7 @@ stages:
     - task: ArchiveFiles@2
       displayName: 'Archive build artifacts'
       inputs:
-        rootFolderOrFile: 'client/build'
+        rootFolderOrFile: 'client'
         includeRootFolder: false
         archiveType: 'zip'
         archiveFile: '$(Build.ArtifactStagingDirectory)/client-build.zip'

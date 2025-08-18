@@ -48,7 +48,7 @@ stages:
       displayName: 'Publish client artifacts'
       inputs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'client-drop'
+        ArtifactName: 'drop'
         publishLocation: 'Container'
 
 - stage: Deploy_Dev

@@ -38,7 +38,7 @@ stages:
     - task: CopyFiles@2
       displayName: 'Copy build artifacts'
       inputs:
-        SourceFolder: 'client/build'
+        SourceFolder: 'client/.svelte-kit/output/client'
         Contents: '**/*'
         TargetFolder: '$(Build.ArtifactStagingDirectory)/client-build'
 
@@ -67,7 +67,7 @@ stages:
               azure_static_web_apps_api_token: '$(StaticWebApp.Dev.DeploymentToken)'
               app_location: '/'
               api_location: ''
-              output_location: 'build'
+              output_location: '.'
               working_directory: '$(Pipeline.Workspace)/client-drop/client-build'
               skip_app_build: true
 
@@ -89,6 +89,6 @@ stages:
               azure_static_web_apps_api_token: '$(StaticWebApp.Prod.DeploymentToken)'
               app_location: '/'
               api_location: ''
-              output_location: 'build'
+              output_location: '.'
               working_directory: '$(Pipeline.Workspace)/client-drop/client-build'
               skip_app_build: true

@@ -35,20 +35,18 @@ stages:
       env:
         API_BASE_URL: 'https://wedding-api-$(Environment.Name).azurewebsites.net'
 
-    - task: ArchiveFiles@2
-      displayName: 'Archive build artifacts'
+    - task: CopyFiles@2
+      displayName: 'Copy build artifacts'
       inputs:
-        rootFolderOrFile: 'client'
-        includeRootFolder: false
-        archiveType: 'zip'
-        archiveFile: '$(Build.ArtifactStagingDirectory)/client-build.zip'
-        replaceExistingArchive: true
+        SourceFolder: 'client/build'
+        Contents: '**/*'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/client-build'
 
     - task: PublishBuildArtifacts@1
       displayName: 'Publish client artifacts'
       inputs:
         PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'drop'
+        ArtifactName: 'client-drop'
         publishLocation: 'Container'
 
 - stage: Deploy_Dev
@@ -63,13 +61,23 @@ stages:
       runOnce:
         deploy:
           steps:
-          - task: AzureWebApp@1
-            displayName: 'Deploy to Dev Web App'
+          - task: AzureKeyVault@2
+            displayName: 'Get secrets from Key Vault'
             inputs:
               azureSubscription: 'Azure Subscription'
-              appName: 'wedding-client-dev'
-              package: '$(Pipeline.Workspace)/drop/client-build.zip'
-              deploymentMethod: 'auto'
+              KeyVaultName: 'lennyandparkerweddingkv'
+              SecretsFilter: 'StaticWebAppDeploymentTokendev'
+              RunAsPreJob: false
+          
+          - task: AzureStaticWebApp@0
+            displayName: 'Deploy to Azure Static Web App (Dev)'
+            inputs:
+              azure_static_web_apps_api_token: '$(StaticWebAppDeploymentTokendev)'
+              app_location: '/'
+              api_location: ''
+              output_location: '.'
+              working_directory: '$(Pipeline.Workspace)/client-drop/client-build'
+              skip_app_build: true
 
 - stage: Deploy_Prod
   displayName: 'Deploy to Production'
@@ -83,10 +91,20 @@ stages:
       runOnce:
         deploy:
           steps:
-          - task: AzureWebApp@1
-            displayName: 'Deploy to Prod Web App'
+          - task: AzureKeyVault@2
+            displayName: 'Get secrets from Key Vault'
             inputs:
               azureSubscription: 'Azure Subscription'
-              appName: 'wedding-client-prod'
-              package: '$(Pipeline.Workspace)/drop/client-build.zip'
-              deploymentMethod: 'auto'
+              KeyVaultName: 'lennyandparkerweddingkv'
+              SecretsFilter: 'StaticWebAppDeploymentTokenprod'
+              RunAsPreJob: false
+          
+          - task: AzureStaticWebApp@0
+            displayName: 'Deploy to Azure Static Web App (Prod)'
+            inputs:
+              azure_static_web_apps_api_token: '$(StaticWebAppDeploymentTokenprod)'
+              app_location: '/'
+              api_location: ''
+              output_location: '.'
+              working_directory: '$(Pipeline.Workspace)/client-drop/client-build'
+              skip_app_build: true

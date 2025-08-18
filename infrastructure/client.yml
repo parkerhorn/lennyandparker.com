@@ -57,7 +57,7 @@ stages:
   condition: succeeded()
   jobs:
   - deployment: DeployToDev
-    displayName: 'Deploy to Dev Static Web App'
+    displayName: 'Deploy to Dev Web App'
     environment: 'dev'
     strategy:
       runOnce:
@@ -77,7 +77,7 @@ stages:
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
   jobs:
   - deployment: DeployToProd
-    displayName: 'Deploy to Prod Static Web App'
+    displayName: 'Deploy to Prod Web App'
     environment: 'prod'
     strategy:
       runOnce:

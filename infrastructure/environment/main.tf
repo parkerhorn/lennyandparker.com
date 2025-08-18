@@ -139,20 +139,11 @@ resource "azurerm_key_vault_access_policy" "web_app_access_to_kv" {
   ]
 }
 
-resource "azurerm_service_plan" "wedding_client_asp" {
-  name                = "wedding-client-${local.environment}-asp"
-  resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
-  location            = azurerm_resource_group.wedding_api_env_rg.location
-  os_type             = "Linux"
-  sku_name            = "F1"
-  tags                = local.tags
-}
-
 resource "azurerm_linux_web_app" "wedding_client" {
   name                = "wedding-client-${local.environment}"
   resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
   location            = azurerm_resource_group.wedding_api_env_rg.location
-  service_plan_id     = azurerm_service_plan.wedding_client_asp.id
+  service_plan_id     = azurerm_service_plan.wedding_api_asp.id
   tags                = local.tags
 
   site_config {

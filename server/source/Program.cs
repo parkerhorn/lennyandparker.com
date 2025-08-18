@@ -33,6 +33,16 @@ public class Program
 
         builder.Services.AddScoped<IGenericAsyncDataService<RSVP, ApplicationDbContext>, GenericAsyncDataService<RSVP, ApplicationDbContext>>();
 
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("WeddingClientPolicy", policy =>
+            {
+                policy.AllowAnyOrigin()
+                      .AllowAnyMethod()
+                      .AllowAnyHeader();
+            });
+        });
+
         var app = builder.Build();
 
         if (app.Environment.IsDevelopment())
@@ -43,8 +53,10 @@ public class Program
 
         app.UseHttpsRedirection();
 
+        app.UseCors("WeddingClientPolicy");
+
         WeddingApi.MapEndpoints(app);
-        
+
         app.Run();
     }
 }

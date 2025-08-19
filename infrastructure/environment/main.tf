@@ -137,4 +137,24 @@ resource "azurerm_key_vault_access_policy" "web_app_access_to_kv" {
   depends_on = [
     azurerm_linux_web_app.wedding_api
   ]
+}
+
+resource "azurerm_linux_web_app" "wedding_client" {
+  name                = "wedding-client-${local.environment}"
+  resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
+  location            = azurerm_resource_group.wedding_api_env_rg.location
+  service_plan_id     = azurerm_service_plan.wedding_api_asp.id
+  tags                = local.tags
+
+  site_config {
+    application_stack {
+      node_version = "20-lts"
+    }
+    always_on = false
+  }
+
+  app_settings = {
+    "API_BASE_URL" = "https://${azurerm_linux_web_app.wedding_api.default_hostname}"
+    "WEBSITE_RUN_FROM_PACKAGE" = "1"
+  }
 } 

@@ -117,7 +117,7 @@ resource "azurerm_linux_web_app" "wedding_api" {
     "ASPNETCORE_ENVIRONMENT"                 = local.environment == "dev" ? "Development" : "Production",
     "WEBSITE_RUN_FROM_PACKAGE"               = "1",
     "ConnectionStrings__DefaultConnection"   = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.database_connection_string.id})",
-    "APPLICATIONINSIGHTS_CONNECTION_STRING" = azurerm_application_insights.wedding_insights.connection_string
+    "APPLICATIONINSIGHTS_CONNECTION_STRING" = azurerm_application_insights.wedding_app_insights.connection_string
   }
 
   depends_on = [
@@ -161,7 +161,7 @@ resource "azurerm_linux_web_app" "wedding_client" {
 }
 
 resource "azurerm_monitor_action_group" "rsvp_alerts" {
-  name                = "rsvp-alerts-${local.environment}"
+  name                = "wedding-rsvp-alerts-${local.environment}"
   resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
   short_name          = "rsvpalerts"
   tags                = local.tags
@@ -176,7 +176,7 @@ resource "azurerm_monitor_action_group" "rsvp_alerts" {
 }
 
 
-resource "azurerm_application_insights" "wedding_insights" {
+resource "azurerm_application_insights" "wedding_app_insights" {
   name                = "wedding-app-insights-${local.environment}"
   location            = azurerm_resource_group.wedding_api_env_rg.location
   resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
@@ -187,9 +187,9 @@ resource "azurerm_application_insights" "wedding_insights" {
 
 
 resource "azurerm_monitor_metric_alert" "rsvp_success_alert" {
-  name                = "rsvp-success-${local.environment}"
+  name                = "wedding-rsvp-alert-${local.environment}"
   resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
-  scopes              = [azurerm_application_insights.wedding_insights.id]
+  scopes              = [azurerm_application_insights.wedding_app_insights.id]
   description         = "Alert when RSVP requests are successful"
   severity            = 3
   frequency           = "PT1M"
@@ -209,7 +209,7 @@ resource "azurerm_monitor_metric_alert" "rsvp_success_alert" {
   }
 
   depends_on = [
-    azurerm_application_insights.wedding_insights,
+    azurerm_application_insights.wedding_app_insights,
     azurerm_monitor_action_group.rsvp_alerts
   ]
 } 

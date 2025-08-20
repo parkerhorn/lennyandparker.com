@@ -175,26 +175,6 @@ resource "azurerm_monitor_action_group" "rsvp_alerts" {
   }
 }
 
-resource "azurerm_monitor_activity_log_alert" "rsvp_success_alert" {
-  name                = "rsvp-submission-success-${local.environment}"
-  resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
-  location            = azurerm_resource_group.wedding_api_env_rg.location
-  scopes              = [azurerm_linux_web_app.wedding_api.id]
-  description         = "Alert when RSVP POST endpoint returns HTTP 200/201"
-  tags                = local.tags
-
-  criteria {
-    category    = "Administrative"
-    operation_name = "Microsoft.Web/sites/slots/write"
-    resource_id = azurerm_linux_web_app.wedding_api.id
-  }
-
-  action {
-    action_group_id = azurerm_monitor_action_group.rsvp_alerts.id
-  }
-
-  depends_on = [azurerm_monitor_action_group.rsvp_alerts]
-}
 
 resource "azurerm_application_insights" "wedding_insights" {
   name                = "wedding-insights-${local.environment}"
@@ -222,18 +202,6 @@ resource "azurerm_monitor_metric_alert" "rsvp_success_alert" {
     aggregation      = "Count"
     operator         = "GreaterThan"
     threshold        = 0
-
-    dimension {
-      name     = "request/name"
-      operator = "Include"
-      values   = ["POST /rsvp"]
-    }
-
-    dimension {
-      name     = "request/resultCode"
-      operator = "Include"
-      values   = ["200", "201"]
-    }
   }
 
   action {

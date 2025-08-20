@@ -230,9 +230,6 @@
       min-height: auto;
     }
 
-    .hero-content {
-      padding: 2rem 0;
-    }
 
     .design-image {
       margin-bottom: 2rem;

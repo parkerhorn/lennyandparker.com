@@ -118,11 +118,11 @@ public class Program
 
         app.UseHttpsRedirection();
 
+        app.UseCors("WeddingClientPolicy");
+
         app.UseAuthentication();
 
         app.UseAuthorization();
-
-        app.UseCors("WeddingClientPolicy");
 
         EndpointMapper.MapEndpoints(app);
 

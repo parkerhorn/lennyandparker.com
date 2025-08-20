@@ -8,7 +8,7 @@ const getApiBaseUrl = () => {
     // In development, use localhost
     return window.location.hostname === 'localhost' 
       ? 'http://localhost:5000'
-      : 'https://wedding-api-prod.azurewebsites.net';
+      : 'https://wedding-api-dev.azurewebsites.net';
   }
   
   // Server-side rendering fallback

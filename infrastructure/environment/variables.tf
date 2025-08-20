@@ -23,4 +23,10 @@ variable "service_principal_id" {
 variable "admin_object_id" {
   description = "The Object ID of the admin account to grant Key Vault access"
   type        = string
+}
+
+variable "alert_emails" {
+  description = "List of email addresses to receive RSVP alerts"
+  type        = list(string)
+  default     = []
 } 

@@ -20,6 +20,8 @@ public class Program
 
         builder.Services.AddEndpointsApiExplorer();
 
+        builder.Services.AddApplicationInsightsTelemetry();
+
         builder.Services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "Wedding API", Version = "v1" });

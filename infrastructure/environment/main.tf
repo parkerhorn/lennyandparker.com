@@ -177,7 +177,7 @@ resource "azurerm_monitor_action_group" "rsvp_alerts" {
 
 
 resource "azurerm_application_insights" "wedding_insights" {
-  name                = "wedding-insights-${local.environment}"
+  name                = "wedding-app-insights-${local.environment}"
   location            = azurerm_resource_group.wedding_api_env_rg.location
   resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
   application_type    = "web"

@@ -73,5 +73,35 @@ public class RSVPEndpointMapper : IEndpointMapper
 
       return Results.NoContent();
     });
+
+    rsvp.MapGet("/search", async (
+      [FromQuery] string? firstName,
+      [FromQuery] string? lastName,
+      IGenericAsyncDataService<RSVP, ApplicationDbContext> service,
+      IFuzzyMatchService fuzzyService) =>
+    {
+      if (string.IsNullOrWhiteSpace(firstName) && string.IsNullOrWhiteSpace(lastName))
+      {
+        return Results.BadRequest("At least firstName or lastName must be provided");
+      }
+
+      var allRsvps = await service.GetAllAsync();
+      
+      if (allRsvps == null || !allRsvps.Any())
+      {
+        return Results.NotFound("No RSVPs found");
+      }
+
+      var bestMatch = fuzzyService.FindBestMatch(allRsvps, firstName, lastName);
+
+      if (bestMatch == null)
+      {
+        return Results.NotFound("No matching RSVP found");
+      }
+
+      return Results.Ok(bestMatch);
+    })
+    .WithName("SearchRSVPs")
+    .WithDescription("Find the best matching RSVP by first and last name using fuzzy search (90%+ similarity)");
   }
 }

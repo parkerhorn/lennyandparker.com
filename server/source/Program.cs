@@ -61,6 +61,8 @@ public class Program
 
         builder.Services.AddScoped<IGenericAsyncDataService<RSVP, ApplicationDbContext>, GenericAsyncDataService<RSVP, ApplicationDbContext>>();
 
+        builder.Services.AddScoped<IFuzzyMatchService, FuzzyMatchService>();
+
         var jwtSettings = new JwtSettings();
         builder.Configuration.GetSection("JWT").Bind(jwtSettings);
 

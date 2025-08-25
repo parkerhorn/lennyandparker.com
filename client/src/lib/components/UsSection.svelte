@@ -44,7 +44,7 @@
     display: block;
     transform: rotate(-2deg) scale(clamp(1, (100vw - 500px) / 800, 1.2));
     transform-origin: center center;
-    margin-left: clamp(-2rem, (100vw - 1000px) / 10, 0rem);
+    margin-left: clamp(0rem, (100vw - 1000px) / 10, 0rem);
     transition: transform 0.3s ease;
   }
 

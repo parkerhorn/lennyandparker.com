@@ -1,8 +1,6 @@
 <script>
   import leftWebp from "$lib/assets/left.webp";
   import rightWebp from "$lib/assets/right.webp";
-  import * as Card from "$lib/components/ui/card";
-  import { Button } from "$lib/components/ui/button";
 
   const faqItems = [
     {
@@ -47,49 +45,42 @@
 </script>
 
 <section class="relative overflow-hidden fluid-spacing-section container-query" style="background: linear-gradient(135deg, #f5f1eb 0%, #e8e2d8 100%);">
+  <!-- Floral Decorations -->
+  <img 
+    src={leftWebp} 
+    alt="Floral decoration" 
+    class="faq-decoration faq-decoration-left"
+  />
+  <img 
+    src={rightWebp} 
+    alt="Floral decoration" 
+    class="faq-decoration faq-decoration-right"
+  />
+  
   <div class="fluid-content relative z-20">
-    <!-- Floral Decorations -->
-    <img 
-      src={leftWebp} 
-      alt="Floral decoration" 
-      class="absolute -left-48 top-24 w-80 h-auto z-10"
-    />
-    <img 
-      src={rightWebp} 
-      alt="Floral decoration" 
-      class="absolute -right-32 bottom-8 w-80 h-auto z-10"
-    />
-    
     <div class="text-center fluid-spacing-component">
       <h2 class="font-script text-primary fluid-section-title" id="faq-heading">FAQ</h2>
     </div>
     
     <div class="max-w-3xl mx-auto space-y-6" role="region" aria-labelledby="faq-heading">
       {#each faqItems as item (item.id)}
-        <Card.Root class="text-center border-none shadow-sm bg-white/80 backdrop-blur-sm">
-          <Card.Header class="pb-3">
-            <Card.Title class="font-sans text-lg font-bold text-primary" id="faq-{item.id}">
-              {item.question}
-            </Card.Title>
-          </Card.Header>
-          <Card.Content class="pt-0">
-            <p class="font-serif text-foreground text-base leading-relaxed" aria-describedby="faq-{item.id}">
-              {item.answer}
-            </p>
-          </Card.Content>
+        <div class="text-center mb-2">
+          <h3 class="font-sans text-lg font-bold text-primary mb-2" id="faq-{item.id}">
+            {item.question}
+          </h3>
+          <p class="font-serif text-foreground text-base leading-relaxed" class:mb-3={item.hasLink} aria-describedby="faq-{item.id}">
+            {item.answer}
+          </p>
           {#if item.hasLink}
-            <Card.Footer class="pt-3">
-              <Button 
-                variant="link" 
-                onclick={item.linkAction}
-                aria-label="Visit {item.linkText} for accommodation booking"
-                class="font-serif text-sm p-0 h-auto"
-              >
-                {item.linkText}
-              </Button>
-            </Card.Footer>
+            <button 
+              class="text-primary underline hover:text-primary transition-colors text-sm font-serif"
+              on:click={item.linkAction}
+              aria-label="Visit {item.linkText} for accommodation booking"
+            >
+              {item.linkText}
+            </button>
           {/if}
-        </Card.Root>
+        </div>
       {/each}
     </div>
   </div>

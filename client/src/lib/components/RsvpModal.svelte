@@ -19,7 +19,7 @@
   let formData = $state({
     fullName: '',
     email: '',
-    isAttending: null,
+    isAttending: /** @type {boolean | null} */ (null),
     pronouns: '',
     dietaryRestrictions: '',
     accessibilityRequirements: '',
@@ -36,6 +36,9 @@
   }
 
   // Name parsing utility
+  /**
+   * @param {string} fullName
+   */
   function parseFullName(fullName) {
     const parts = fullName.trim().split(' ');
     return {
@@ -118,7 +121,7 @@
       currentStep = 4; // Move to success step
     } catch (error) {
       console.error('Failed to submit RSVP:', error);
-      errorMessage = error.message || 'Failed to submit RSVP. Please try again.';
+      errorMessage = /** @type {Error} */ (error).message || 'Failed to submit RSVP. Please try again.';
     } finally {
       isSubmitting = false;
     }
@@ -146,8 +149,10 @@
 </script>
 
 <Dialog.Root bind:open>
-  <Dialog.Trigger class="inline-flex items-center justify-center rounded-md font-sans font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-purple-200 text-purple-900 border-2 border-purple-300 hover:bg-purple-300 shadow-[4px_4px_0_theme(colors.purple.300)] hover:shadow-[2px_2px_0_theme(colors.purple.300)] hover:translate-x-0.5 hover:translate-y-0.5 transition-all duration-200 font-semibold underline decoration-purple-400 decoration-2 underline-offset-4 h-10 px-4 py-2" aria-label="Open RSVP form">
-    RSVP Now
+  <Dialog.Trigger>
+    <Button variant="wedding" class="font-sans" aria-label="Open RSVP form">
+      RSVP Now
+    </Button>
   </Dialog.Trigger>
   <Dialog.Content class="sm:max-w-md bg-card border" portalProps={{}}>
     <Dialog.Header class="">
@@ -192,7 +197,7 @@
               class={formData.isAttending === true 
                 ? "bg-secondary text-secondary-foreground hover:bg-secondary/80 h-12" 
                 : "border-secondary text-secondary hover:bg-muted h-12"}
-              onclick={() => (formData.isAttending = true)}
+              onclick={() => { formData.isAttending = true; }}
               role="radio"
               aria-checked={formData.isAttending === true}
               aria-label="Accept invitation"
@@ -204,7 +209,7 @@
               class={formData.isAttending === false
                 ? "bg-muted-foreground text-primary-foreground hover:bg-muted-foreground/80 h-12"
                 : "border-muted-foreground text-muted-foreground hover:bg-muted h-12"}
-              onclick={() => (formData.isAttending = false)}
+              onclick={() => { formData.isAttending = false; }}
               role="radio"
               aria-checked={formData.isAttending === false}
               aria-label="Decline invitation"

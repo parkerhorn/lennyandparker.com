@@ -161,11 +161,6 @@ resource "azurerm_linux_web_app" "wedding_client" {
   }
 }
 
-import {
-  to = azurerm_app_service_custom_hostname_binding.wedding_client_domain[0]
-  id = "/subscriptions/cfd85851-6ad9-41be-b2c8-71943ffe0aa2/resourceGroups/wedding-api-prod-rg/providers/Microsoft.Web/sites/wedding-client-prod/hostNameBindings/lennyandparker.com"
-}
-
 resource "azurerm_app_service_custom_hostname_binding" "wedding_client_domain" {
   count               = local.environment == "prod" && var.custom_domain_name != "" ? 1 : 0
   hostname            = var.custom_domain_name

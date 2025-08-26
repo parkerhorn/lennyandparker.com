@@ -315,5 +315,7 @@ output "dns_configuration_instructions" {
       name  = "asuid.${split(".", var.custom_domain_name)[0]}"
       value = azurerm_linux_web_app.wedding_client.custom_domain_verification_id
     }
-  } : "No custom domain configured"
+  } : {
+    message = "No custom domain configured"
+  }
 } 

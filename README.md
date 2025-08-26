@@ -4,19 +4,11 @@ Full-stack wedding platform showcasing enterprise .NET 8 microservice architectu
 
 ## Architecture
 
-**Backend** - .NET 8 Minimal APIs with Repository Pattern, Unit of Work, and Entity Framework Core  
 **Frontend** - SvelteKit with TypeScript and TailwindCSS  
+**Backend** - .NET 8 Minimal APIs with Repository Pattern, Unit of Work, and Entity Framework Core  
 **Infrastructure** - Terraform-managed Azure microservices with automated CI/CD
 
 ## Key Technical Features
-
-### Backend
-- **Repository Pattern** with generic async repositories
-- **Unit of Work Pattern** for transaction management  
-- **Dependency Injection** with scoped service lifetimes
-- **Entity Framework Core** migrations and SQL Server integration
-- **Application Insights** telemetry and Azure Monitor alerts
-- **Fuzzy string matching** for intelligent guest search (90%+ similarity)
 
 ### Frontend
 - **Svelte 5 Runes** for reactive state management with `$state` and `$bindable`
@@ -26,14 +18,22 @@ Full-stack wedding platform showcasing enterprise .NET 8 microservice architectu
 - **Modern CSS** with TailwindCSS 4.0, custom design tokens, and responsive utilities
 - **Progressive Enhancement** with JavaScript-optional forms and navigation
 
+### Backend
+- **Repository Pattern** with generic async repositories
+- **Unit of Work Pattern** for transaction management  
+- **Dependency Injection** with scoped service lifetimes
+- **Entity Framework Core** migrations and SQL Server integration
+- **Application Insights** telemetry and Azure Monitor alerts
+- **Fuzzy string matching** for intelligent guest search (90%+ similarity)
+
 ### Infrastructure
 - **Infrastructure as Code** with Terraform
 - **Multi-environment deployments** via Azure DevOps pipelines
 
 ## Technology Stack
 
-**Backend**: .NET 8, Entity Framework Core, SQL Server, Application Insights, FuzzySharp  
 **Frontend**: SvelteKit 2.0, TypeScript, TailwindCSS, Bits UI  
+**Backend**: .NET 8, Entity Framework Core, SQL Server, Application Insights, FuzzySharp  
 **Infrastructure**: Azure App Service, Azure SQL Database, Azure Key Vault, Terraform, Azure DevOps
 
 ## Azure Microservices

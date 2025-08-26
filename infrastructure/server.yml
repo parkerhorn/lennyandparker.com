@@ -128,7 +128,7 @@ stages:
 - stage: Deploy_Prod
   displayName: 'Deploy to Production'
   dependsOn: Deploy_Dev
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  #condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
   jobs:
   - deployment: DeployToProd
     displayName: 'Deploy API to Web App'

@@ -202,10 +202,20 @@ resource "azurerm_monitor_action_group" "rsvp_alerts" {
 }
 
 
+resource "azurerm_log_analytics_workspace" "wedding_log_analytics" {
+  name                = "wedding-log-analytics-${local.environment}"
+  location            = azurerm_resource_group.wedding_api_env_rg.location
+  resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
+  sku                 = "Free"
+  retention_in_days   = 7
+  tags                = local.tags
+}
+
 resource "azurerm_application_insights" "wedding_app_insights" {
   name                = "wedding-app-insights-${local.environment}"
   location            = azurerm_resource_group.wedding_api_env_rg.location
   resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
+  workspace_id        = azurerm_log_analytics_workspace.wedding_log_analytics.id
   application_type    = "web"
   tags                = local.tags
 }
@@ -213,7 +223,7 @@ resource "azurerm_application_insights" "wedding_app_insights" {
 
 
 resource "azurerm_monitor_scheduled_query_rules_alert_v2" "rsvp_success_alert" {
-  #count               = local.environment == "prod" ? 1 : 0
+  count               = local.environment == "prod" ? 1 : 0
   name                = "wedding-rsvp-success-${local.environment}"
   resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
   location            = azurerm_resource_group.wedding_api_env_rg.location

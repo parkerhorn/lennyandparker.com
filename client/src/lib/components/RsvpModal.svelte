@@ -18,7 +18,7 @@
   let formData = $state({
     fullName: '',
     email: '',
-    isAttending: /** @type {boolean | null} */ (null),
+    isAttending: /** @type {string} */ (''),
     pronouns: '',
     dietaryRestrictions: '',
     accessibilityRequirements: '',
@@ -57,7 +57,7 @@
     
     const validations = {
       1: () => !formData.fullName.trim() ? 'Please enter your name' : '',
-      2: () => formData.isAttending === null ? 'Please select whether you will attend' : '',
+      2: () => !formData.isAttending ? 'Please select whether you will attend' : '',
       3: () => !formData.email.trim() ? 'Please enter your email address' : 
                !formData.email.includes('@') ? 'Please enter a valid email address' : ''
     };
@@ -75,7 +75,7 @@
   function goToNextStep() {
     if (validateStep()) {
       // If declining on step 2, skip details and submit directly
-      if (currentStep === 2 && formData.isAttending === false) {
+      if (currentStep === 2 && formData.isAttending === "false") {
         submitRsvp();
       } else {
         nextStep();
@@ -85,7 +85,7 @@
 
   async function submitRsvp() {
     // Final validation - skip email validation for declining users
-    if (!(formData.isAttending === false && currentStep === 2) && !validateStep()) {
+    if (!(formData.isAttending === "false" && currentStep === 2) && !validateStep()) {
       return;
     }
 
@@ -101,7 +101,7 @@
         FirstName: firstName,
         LastName: lastName,
         Email: formData.email,
-        IsAttending: formData.isAttending,
+        IsAttending: formData.isAttending === "true",
         DietaryRestrictions: formData.dietaryRestrictions || null,
         AccessibilityRequirements: formData.accessibilityRequirements || null,
         Pronouns: formData.pronouns || null,
@@ -133,7 +133,7 @@
       formData = {
         fullName: '',
         email: '',
-        isAttending: null,
+        isAttending: '',
         pronouns: '',
         dietaryRestrictions: '',
         accessibilityRequirements: '',
@@ -193,11 +193,11 @@
         <div class="grid gap-[var(--spacing-element)]" role="form">
           <RadioGroup.Root bind:value={formData.isAttending} class="grid gap-3">
             <div class="flex items-center space-x-3 p-3 border rounded-md hover:bg-muted">
-              <RadioGroup.Item value={true} id="accept" class="text-primary border-input" />
+              <RadioGroup.Item value="true" id="accept" class="text-primary border-input" />
               <Label for="accept" class="text-lg cursor-pointer flex-1">✓ Politely Accepts</Label>
             </div>
             <div class="flex items-center space-x-3 p-3 border rounded-md hover:bg-muted">
-              <RadioGroup.Item value={false} id="decline" class="text-primary border-input" />
+              <RadioGroup.Item value="false" id="decline" class="text-primary border-input" />
               <Label for="decline" class="text-lg cursor-pointer flex-1">✗ Regretfully Declines</Label>
             </div>
           </RadioGroup.Root>

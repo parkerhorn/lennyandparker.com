@@ -1,6 +1,6 @@
 # lennyandparker.com
 
-Full-stack wedding platform showcasing enterprise .NET 8 microservice architecture, modern SvelteKit frontend, and automated Azure DevOps deployment pipelines.
+Full-stack wedding platform showcasing enterprise .NET 8 microservice architecture, modern SvelteKit frontend, and automated Azure DevOps deployment pipelines for the purpose of keeping track of who is coming to our wedding!
 
 ## Architecture
 

@@ -177,20 +177,10 @@ resource "azurerm_monitor_action_group" "rsvp_alerts" {
 }
 
 
-resource "azurerm_log_analytics_workspace" "wedding_log_analytics" {
-  name                = "wedding-log-analytics-${local.environment}"
-  location            = azurerm_resource_group.wedding_api_env_rg.location
-  resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
-  sku                 = "Free"
-  retention_in_days   = 7
-  tags                = local.tags
-}
-
 resource "azurerm_application_insights" "wedding_app_insights" {
   name                = "wedding-app-insights-${local.environment}"
   location            = azurerm_resource_group.wedding_api_env_rg.location
   resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
-  workspace_id        = azurerm_log_analytics_workspace.wedding_log_analytics.id
   application_type    = "web"
   tags                = local.tags
 }
@@ -198,6 +188,7 @@ resource "azurerm_application_insights" "wedding_app_insights" {
 
 
 resource "azurerm_monitor_metric_alert" "rsvp_success_alert" {
+  count               = local.environment == "prod" ? 1 : 0
   name                = "wedding-rsvp-success-${local.environment}"
   resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
   scopes              = [azurerm_application_insights.wedding_app_insights.id]
@@ -213,18 +204,6 @@ resource "azurerm_monitor_metric_alert" "rsvp_success_alert" {
     aggregation      = "Count"
     operator         = "GreaterThan"
     threshold        = 0
-
-    dimension {
-      name     = "request/name"
-      operator = "Include"
-      values   = ["POST /rsvp"]
-    }
-
-    dimension {
-      name     = "request/resultCode"
-      operator = "Include"
-      values   = ["200", "201"]
-    }
   }
 
   action {
@@ -238,6 +217,7 @@ resource "azurerm_monitor_metric_alert" "rsvp_success_alert" {
 }
 
 resource "azurerm_monitor_metric_alert" "api_failure_alert" {
+  count               = local.environment == "prod" ? 1 : 0
   name                = "wedding-api-failure-${local.environment}"
   resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
   scopes              = [azurerm_application_insights.wedding_app_insights.id]

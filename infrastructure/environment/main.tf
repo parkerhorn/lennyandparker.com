@@ -304,18 +304,17 @@ output "client_app_default_hostname" {
 
 output "dns_configuration_instructions" {
   description = "DNS records needed for custom domain setup"
-  value = var.custom_domain_name != "" ? {
+  value = {
+    domain_name = var.custom_domain_name
     cname_record = {
       type  = "CNAME"
-      name  = split(".", var.custom_domain_name)[0]
+      name  = var.custom_domain_name != "" ? split(".", var.custom_domain_name)[0] : "www"
       value = azurerm_linux_web_app.wedding_client.default_hostname
     }
     txt_record = {
       type  = "TXT"
-      name  = "asuid.${split(".", var.custom_domain_name)[0]}"
+      name  = var.custom_domain_name != "" ? "asuid.${split(".", var.custom_domain_name)[0]}" : "asuid.www"
       value = azurerm_linux_web_app.wedding_client.custom_domain_verification_id
     }
-  } : {
-    message = "No custom domain configured"
   }
 } 

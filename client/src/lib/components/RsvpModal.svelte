@@ -100,7 +100,7 @@
       const rsvpData = {
         FirstName: firstName,
         LastName: lastName,
-        Email: formData.email,
+        Email: formData.email || 'noemail@declined.com',
         IsAttending: formData.isAttending === "true",
         DietaryRestrictions: formData.dietaryRestrictions || null,
         AccessibilityRequirements: formData.accessibilityRequirements || null,

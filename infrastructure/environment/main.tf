@@ -116,11 +116,13 @@ resource "azurerm_linux_web_app" "wedding_api" {
   app_settings = {
     "ASPNETCORE_ENVIRONMENT"                 = local.environment == "dev" ? "Development" : "Production",
     "WEBSITE_RUN_FROM_PACKAGE"               = "1",
-    "ConnectionStrings__DefaultConnection"   = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.database_connection_string.id})"
+    "ConnectionStrings__DefaultConnection"   = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.database_connection_string.id})",
+    "APPLICATIONINSIGHTS_CONNECTION_STRING" = azurerm_application_insights.wedding_app_insights.connection_string
   }
 
   depends_on = [
-    azurerm_key_vault_secret.database_connection_string
+    azurerm_key_vault_secret.database_connection_string,
+    azurerm_application_insights.wedding_app_insights
   ]
 }
 
@@ -157,4 +159,98 @@ resource "azurerm_linux_web_app" "wedding_client" {
     "API_BASE_URL" = "https://${azurerm_linux_web_app.wedding_api.default_hostname}"
     "WEBSITE_RUN_FROM_PACKAGE" = "1"
   }
+}
+
+resource "azurerm_monitor_action_group" "rsvp_alerts" {
+  name                = "wedding-rsvp-alerts-${local.environment}"
+  resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
+  short_name          = "rsvpalerts"
+  tags                = local.tags
+
+  dynamic "email_receiver" {
+    for_each = var.alert_emails
+    content {
+      name          = "rsvp-notification-${email_receiver.key + 1}"
+      email_address = email_receiver.value
+    }
+  }
+}
+
+
+resource "azurerm_application_insights" "wedding_app_insights" {
+  name                = "wedding-app-insights-${local.environment}"
+  location            = azurerm_resource_group.wedding_api_env_rg.location
+  resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
+  application_type    = "web"
+  tags                = local.tags
+}
+
+
+
+resource "azurerm_monitor_metric_alert" "rsvp_success_alert" {
+  name                = "wedding-rsvp-success-${local.environment}"
+  resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
+  scopes              = [azurerm_application_insights.wedding_app_insights.id]
+  description         = "Alert when RSVP submissions are successful"
+  severity            = 2
+  frequency           = "PT5M"
+  window_size         = "PT15M"
+  tags                = local.tags
+
+  criteria {
+    metric_namespace = "microsoft.insights/components"
+    metric_name      = "requests/count"
+    aggregation      = "Count"
+    operator         = "GreaterThan"
+    threshold        = 0
+
+    dimension {
+      name     = "request/name"
+      operator = "Include"
+      values   = ["POST /rsvp"]
+    }
+
+    dimension {
+      name     = "request/resultCode"
+      operator = "Include"
+      values   = ["200", "201"]
+    }
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.rsvp_alerts.id
+  }
+
+  depends_on = [
+    azurerm_application_insights.wedding_app_insights,
+    azurerm_monitor_action_group.rsvp_alerts
+  ]
+}
+
+resource "azurerm_monitor_metric_alert" "api_failure_alert" {
+  name                = "wedding-api-failure-${local.environment}"
+  resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
+  scopes              = [azurerm_application_insights.wedding_app_insights.id]
+  description         = "Alert when API requests are failing"
+  severity            = 1
+  frequency           = "PT1M"
+  window_size         = "PT5M"
+  tags                = local.tags
+
+  criteria {
+    metric_namespace = "microsoft.insights/components"
+    metric_name      = "requests/failed"
+    aggregation      = "Count"
+    operator         = "GreaterThan"
+    threshold        = 2
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.rsvp_alerts.id
+  }
+
+  depends_on = [
+    azurerm_application_insights.wedding_app_insights,
+    azurerm_monitor_action_group.rsvp_alerts
+  ]
 } 

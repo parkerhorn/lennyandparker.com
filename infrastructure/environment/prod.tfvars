@@ -4,4 +4,4 @@ alert_emails = [
   "len.dickey@protonmail.com"
 ]
 
-custom_domain_name = "www.lennyandparker.com"
+custom_domain_name = "lennyandparker.com"

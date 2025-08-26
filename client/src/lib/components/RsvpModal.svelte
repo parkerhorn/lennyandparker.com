@@ -10,6 +10,16 @@
   // Props
   let { open = $bindable(false) } = $props();
 
+  // Pre-warm API when modal opens
+  $effect(() => {
+    if (open) {
+      // Wake up API in background - fire and forget
+      fetch('https://wedding-api-dev.azurewebsites.net/health').catch(() => {
+        // Ignore errors, just trying to warm the API
+      });
+    }
+  });
+
   // State Management
   let currentStep = $state(1);
   let isSubmitted = $state(false);
@@ -167,7 +177,7 @@
         {:else if currentStep === 3}
           Details for {getDisplayName()}
         {:else if currentStep === 4}
-          RSVP Submitted!
+          {formData.isAttending === "true" ? "RSVP Submitted!" : "We'll Miss You!"}
         {/if}
       </Dialog.Title>
     </Dialog.Header>
@@ -279,14 +289,25 @@
       {:else if currentStep === 4}
         <!-- Success Step -->
         <div class="text-center py-8" role="status" aria-live="polite">
-          <div class="mb-6">
-            <div class="mx-auto w-16 h-16 bg-secondary rounded-full flex items-center justify-center mb-4" aria-hidden="true">
-              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-              </svg>
+          {#if formData.isAttending === "true"}
+            <div class="mb-6">
+              <div class="mx-auto w-16 h-16 bg-secondary rounded-full flex items-center justify-center mb-4" aria-hidden="true">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </div>
+              <p class="">Thank you for responding. We can't wait to celebrate with you!</p>
             </div>
-            <p class="">Thank you for responding. We can't wait to celebrate with you!</p>
-          </div>
+          {:else}
+            <div class="mb-6">
+              <div class="mx-auto w-16 h-16 bg-muted-foreground rounded-full flex items-center justify-center mb-4" aria-hidden="true">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </div>
+              <p class="">Thank you for letting us know. We'll miss having you there, but we understand!</p>
+            </div>
+          {/if}
           <Button onclick={closeModal} variant="wedding" class="font-sans" aria-label="Close RSVP form">
             Close
           </Button>

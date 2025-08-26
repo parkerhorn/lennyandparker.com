@@ -22,8 +22,8 @@
 			ghost: "hover:bg-accent hover:text-accent-foreground",
 			link: "text-primary underline-offset-4 hover:underline",
 			// Wedding-themed variants with consistent design language
-			wedding: "bg-purple-200 text-purple-900 border-2 border-purple-300 hover:bg-purple-300 shadow-[4px_4px_0_theme(colors.purple.300)] hover:shadow-[2px_2px_0_theme(colors.purple.300)] hover:translate-x-0.5 hover:translate-y-0.5 transition-all duration-200 font-semibold underline decoration-purple-400 decoration-2 underline-offset-4",
-			weddingSecondary: "bg-green-200 text-green-900 border-2 border-green-300 hover:bg-green-300 shadow-[4px_4px_0_theme(colors.green.300)] hover:shadow-[2px_2px_0_theme(colors.green.300)] hover:translate-x-0.5 hover:translate-y-0.5 transition-all duration-200 font-semibold underline decoration-green-400 decoration-2 underline-offset-4"
+			wedding: "bg-[#c5b3e8] text-[#2d1a42] border-2 border-[#b29dd6] hover:bg-[#b29dd6] shadow-[4px_4px_0_#b29dd6] hover:shadow-[2px_2px_0_#9d87c4] hover:translate-x-0.5 hover:translate-y-0.5 transition-all duration-200 font-semibold underline decoration-[#2d1a42] decoration-2 underline-offset-4",
+			weddingSecondary: "bg-[#c8d49a] text-[#3a4520] border-2 border-[#b5c285] hover:bg-[#b5c285] shadow-[4px_4px_0_#b5c285] hover:shadow-[2px_2px_0_#a2b070] hover:translate-x-0.5 hover:translate-y-0.5 transition-all duration-200 font-semibold underline decoration-[#3a4520] decoration-2 underline-offset-4"
 		};
 		return variants[variant] || variants.default;
 	}

@@ -45,19 +45,19 @@
 </script>
 
 <section class="relative overflow-hidden fluid-spacing-section container-query" style="background: linear-gradient(135deg, #f5f1eb 0%, #e8e2d8 100%);">
+  <!-- Floral Decorations -->
+  <img 
+    src={leftWebp} 
+    alt="Floral decoration" 
+    class="faq-decoration faq-decoration-left"
+  />
+  <img 
+    src={rightWebp} 
+    alt="Floral decoration" 
+    class="faq-decoration faq-decoration-right"
+  />
+  
   <div class="fluid-content relative z-20">
-    <!-- Floral Decorations -->
-    <img 
-      src={leftWebp} 
-      alt="Floral decoration" 
-      class="absolute -left-48 top-24 w-80 h-auto z-10"
-    />
-    <img 
-      src={rightWebp} 
-      alt="Floral decoration" 
-      class="absolute -right-32 bottom-8 w-80 h-auto z-10"
-    />
-    
     <div class="text-center fluid-spacing-component">
       <h2 class="font-script text-primary fluid-section-title" id="faq-heading">FAQ</h2>
     </div>

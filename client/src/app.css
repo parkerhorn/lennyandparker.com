@@ -136,10 +136,12 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    border-color: var(--color-border);
+    outline-color: color-mix(in srgb, var(--color-ring) 50%, transparent);
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
     background: linear-gradient(135deg, #f5f1eb 0%, #e8e2d8 100%);
     background-attachment: fixed;
   }
@@ -217,6 +219,26 @@
     height: auto;
     object-fit: cover;
   }
+
+  /* FAQ decorative image utilities */
+  .faq-decoration {
+    position: absolute;
+    width: 20rem;
+    height: auto;
+    z-index: clamp(0, 100vw - 48em, 10);
+    opacity: 0.2;
+    transition: opacity 0.1s ease;
+  }
+
+  .faq-decoration-left {
+    left: -7rem;
+    top: 6rem;
+  }
+
+  .faq-decoration-right {  
+    right: -7rem;
+    bottom: 2rem;
+  }
 }
 
 /* Modern Container Queries */
@@ -242,18 +264,24 @@
   }
 }
 
+@container (min-width: 48rem) {
+  .faq-decoration {
+    opacity: 0.8;
+  }
+}
+
 @layer components {
   /* Enhanced Wedding Button Styles with Box Shadow Animations */
   .btn-wedding-primary {
-    background-color: #e9d5ff;
-    color: #581c87;
+    background-color: #c5b3e8;
+    color: #7a65b4;
     padding: 0.75rem 1.5rem;
     border-radius: 0.5rem;
-    border: 2px solid #d8b4fe;
-    box-shadow: 4px 4px 0 #c084fc;
+    border: 2px solid #b29dd6;
+    box-shadow: 4px 4px 0 #9d87c4;
     transition: all 0.3s ease;
     text-decoration: underline;
-    text-decoration-color: #c084fc;
+    text-decoration-color: #9d87c4;
     text-decoration-thickness: 2px;
     text-underline-offset: 4px;
     font-weight: 600;
@@ -261,21 +289,21 @@
   }
 
   .btn-wedding-primary:hover {
-    background-color: #d8b4fe;
+    background-color: #b29dd6;
     transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0 #c084fc;
+    box-shadow: 2px 2px 0 #9d87c4;
   }
 
   .btn-wedding-secondary {
-    background-color: #bbf7d0;
-    color: #166534;
+    background-color: #c8d49a;
+    color: #9da257;
     padding: 0.75rem 1.5rem;
     border-radius: 0.5rem;
-    border: 2px solid #86efac;
-    box-shadow: 4px 4px 0 #4ade80;
+    border: 2px solid #b5c285;
+    box-shadow: 4px 4px 0 #a2b070;
     transition: all 0.3s ease;
     text-decoration: underline;
-    text-decoration-color: #4ade80;
+    text-decoration-color: #a2b070;
     text-decoration-thickness: 2px;
     text-underline-offset: 4px;
     font-weight: 600;
@@ -283,22 +311,22 @@
   }
 
   .btn-wedding-secondary:hover {
-    background-color: #86efac;
+    background-color: #b5c285;
     transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0 #4ade80;
+    box-shadow: 2px 2px 0 #a2b070;
   }
 
   /* Wedding Outline Variant */
   .btn-wedding-outline {
     background-color: transparent;
-    color: #581c87;
+    color: #7a65b4;
     padding: 0.75rem 1.5rem;
     border-radius: 0.5rem;
-    border: 2px solid #d8b4fe;
-    box-shadow: 4px 4px 0 #e9d5ff;
+    border: 2px solid #b29dd6;
+    box-shadow: 4px 4px 0 #c5b3e8;
     transition: all 0.3s ease;
     text-decoration: underline;
-    text-decoration-color: #c084fc;
+    text-decoration-color: #9d87c4;
     text-decoration-thickness: 2px;
     text-underline-offset: 4px;
     font-weight: 600;
@@ -306,9 +334,9 @@
   }
 
   .btn-wedding-outline:hover {
-    background-color: #f3e8ff;
+    background-color: #d8cbe8;
     transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0 #e9d5ff;
+    box-shadow: 2px 2px 0 #c5b3e8;
   }
 
   .section-title {

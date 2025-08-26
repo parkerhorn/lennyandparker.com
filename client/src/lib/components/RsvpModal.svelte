@@ -2,31 +2,61 @@
   // All our imports
   import { Button } from "$lib/components/ui/button";
   import * as Dialog from "$lib/components/ui/dialog";
-  import * as Card from "$lib/components/ui/card";
   import { Input } from "$lib/components/ui/input";
   import { Label } from "$lib/components/ui/label";
   import * as RadioGroup from "$lib/components/ui/radio-group";
-  import { Textarea } from "$lib/components/ui/textarea";
-  import { defaultRsvpParty } from '$lib/config/mockData.js';
+  import { rsvpApi } from '$lib/config/api.js';
+  import { registryUrl } from '$lib/config/weddingData.js';
 
   // Props
   let { open = $bindable(false) } = $props();
+
+  // Pre-warm API when modal opens
+  $effect(() => {
+    if (open) {
+      // Wake up API in background - fire and forget
+      fetch('https://wedding-api-dev.azurewebsites.net/health').catch(() => {
+        // Ignore errors, just trying to warm the API
+      });
+    }
+  });
+
+  // Reset state when modal closes
+  $effect(() => {
+    if (!open) {
+      // Reset state when modal closes
+      setTimeout(() => {
+        currentStep = 1;
+        isSubmitted = false;
+        isSubmitting = false;
+        errorMessage = '';
+        formData = {
+          fullName: '',
+          email: '',
+          isAttending: '',
+          pronouns: '',
+          dietaryRestrictions: '',
+          accessibilityRequirements: '',
+          note: ''
+        };
+      }, 300);
+    }
+  });
 
   // State Management
   let currentStep = $state(1);
   let isSubmitted = $state(false);
   let isSubmitting = $state(false);
-  let searchName = $state('');
-  let foundParty = $state(null);
+  let errorMessage = $state('');
   let formData = $state({
+    fullName: '',
+    email: '',
+    isAttending: /** @type {string} */ (''),
     pronouns: '',
     dietaryRestrictions: '',
     accessibilityRequirements: '',
     note: ''
   });
-
-  // Mock Data
-  let party = $state(structuredClone(defaultRsvpParty));
 
   // Navigation Functions
   function nextStep() {
@@ -37,42 +67,89 @@
     currentStep--;
   }
 
-  async function submitRsvp() {
-    isSubmitting = true;
-    try {
-      // Prepare RSVP data for backend
-      const responses = party.members.map(member => ({
-        firstName: member.name.split(' ')[0],
-        lastName: member.name.split(' ').slice(1).join(' ') || '',
-        email: '', // Could be collected in step 1 if needed
-        attending: member.attending,
-        dietaryRestrictions: formData.dietaryRestrictions || null,
-        accessibilityRequirements: formData.accessibilityRequirements || null,
-        pronouns: formData.pronouns || null,
-        note: formData.note || null
-      }));
+  // Name parsing utility
+  /**
+   * @param {string} fullName
+   */
+  function parseFullName(fullName) {
+    const parts = fullName.trim().split(' ');
+    return {
+      firstName: parts[0] || '',
+      lastName: parts.slice(1).join(' ') || ''
+    };
+  }
 
-      const response = await fetch('/api/rsvp/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          partyId: party.partyId,
-          responses: responses
-        })
-      });
+  // Get display name for steps
+  function getDisplayName() {
+    return formData.fullName || 'Guest';
+  }
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to submit RSVP');
+  // Step validation
+  function validateStep() {
+    errorMessage = '';
+    
+    const validations = {
+      1: () => !formData.fullName.trim() ? 'Please enter your name' : '',
+      2: () => !formData.isAttending ? 'Please select whether you will attend' : '',
+      3: () => !formData.email.trim() ? 'Please enter your email address' : 
+               !formData.email.includes('@') ? 'Please enter a valid email address' : ''
+    };
+    
+    const validation = validations[currentStep];
+    if (validation) {
+      errorMessage = validation();
+      return !errorMessage;
+    }
+    
+    return true;
+  }
+
+  // Navigate to next step with validation
+  function goToNextStep() {
+    if (validateStep()) {
+      // If declining on step 2, skip details and submit directly
+      if (currentStep === 2 && formData.isAttending === "false") {
+        submitRsvp();
+      } else {
+        nextStep();
       }
+    }
+  }
+
+  async function submitRsvp() {
+    // Final validation - skip email validation for declining users
+    if (!(formData.isAttending === "false" && currentStep === 2) && !validateStep()) {
+      return;
+    }
+
+    isSubmitting = true;
+    errorMessage = '';
+    
+    try {
+      // Parse name for API
+      const { firstName, lastName } = parseFullName(formData.fullName);
+      
+      // Prepare RSVP data for backend - direct API format
+      const rsvpData = {
+        FirstName: firstName,
+        LastName: lastName,
+        Email: formData.email || 'noemail@declined.com',
+        IsAttending: formData.isAttending === "true",
+        DietaryRestrictions: formData.dietaryRestrictions || null,
+        AccessibilityRequirements: formData.accessibilityRequirements || null,
+        Pronouns: formData.pronouns || null,
+        Note: formData.note || null
+      };
+
+
+      // Direct API call to backend
+      await rsvpApi.submit(rsvpData);
 
       isSubmitted = true;
       currentStep = 4; // Move to success step
     } catch (error) {
       console.error('Failed to submit RSVP:', error);
-      alert('Failed to submit RSVP. Please try again.');
+      errorMessage = /** @type {Error} */ (error).message || 'Failed to submit RSVP. Please try again.';
     } finally {
       isSubmitting = false;
     }
@@ -80,179 +157,166 @@
 
   function closeModal() {
     open = false;
-    // Reset state when modal closes
-    setTimeout(() => {
-      currentStep = 1;
-      isSubmitted = false;
-      isSubmitting = false;
-    }, 300);
   }
 </script>
 
+{#snippet errorDisplay()}
+  {#if errorMessage}
+    <div class="p-3 bg-destructive/10 border border-destructive/20 rounded-md text-destructive text-sm" role="alert">
+      {errorMessage}
+    </div>
+  {/if}
+{/snippet}
+
 <Dialog.Root bind:open>
-  <Dialog.Trigger class="inline-flex items-center justify-center rounded-md font-sans font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-purple-200 text-purple-900 border-2 border-purple-300 hover:bg-purple-300 shadow-[4px_4px_0_theme(colors.purple.300)] hover:shadow-[2px_2px_0_theme(colors.purple.300)] hover:translate-x-0.5 hover:translate-y-0.5 transition-all duration-200 font-semibold underline decoration-purple-400 decoration-2 underline-offset-4 h-10 px-4 py-2" aria-label="Open RSVP form">
-    RSVP Now
+  <Dialog.Trigger>
+    <Button variant="wedding" class="font-sans" aria-label="Open RSVP form">
+      RSVP Now
+    </Button>
   </Dialog.Trigger>
-  <Dialog.Content class="sm:max-w-md bg-card border" portalProps={{}}>
-    <Dialog.Header class="">
-      <Dialog.Title class="text-card-foreground font-serif">Wedding RSVP</Dialog.Title>
-      <Dialog.Description class="text-muted-foreground">
-        We can't wait to celebrate with you!
-      </Dialog.Description>
+  <Dialog.Content class="container-query bg-card border" portalProps={{}}>
+    <Dialog.Header>
+      <Dialog.Title class="text-card-foreground font-serif text-center">
+        {#if currentStep === 1}
+          Enter Your Name
+        {:else if currentStep === 2}
+          {getDisplayName()}, will you attend?
+        {:else if currentStep === 3}
+          Details for {getDisplayName()}
+        {:else if currentStep === 4}
+          <div class="text-2xl text-primary" aria-hidden="true">⋅˚₊‧ ୨୧ ‧₊˚ ⋅</div>
+        {/if}
+      </Dialog.Title>
     </Dialog.Header>
 
     <div class="py-4" role="main" aria-live="polite">
       {#if currentStep === 1}
-        <div class="grid gap-4" role="form" aria-labelledby="search-heading">
-          <h3 id="search-heading" class="sr-only">Search for your invitation</h3>
+        <div class="grid gap-[var(--spacing-element)]" role="form">
           <div class="grid gap-2">
-            <Label for="name" class="text-muted-foreground font-medium">Search Your Name</Label>
+            <Label for="fullName" class="font-medium">What's your name?</Label>
             <Input 
-              id="name" 
+              id="fullName" 
               placeholder="e.g., John Smith" 
               type="text" 
-              class="border-input focus:border-primary focus:ring-primary" 
-              aria-describedby="name-help"
+              class="" 
               aria-required="true"
-              bind:value={searchName}
+              bind:value={formData.fullName}
             />
-            <div id="name-help" class="sr-only">Enter your full name as it appears on your invitation</div>
           </div>
-          <Button on:click={nextStep} variant="wedding" class="font-sans" aria-label="Search for invitation">Search</Button>
+          <Button onclick={goToNextStep} variant="wedding" class="font-sans" aria-label="Continue to next step">Continue</Button>
+          {@render errorDisplay()}
         </div>
       {:else if currentStep === 2}
-        <Card.Root class="w-full border-none shadow-none" role="form" aria-labelledby="attendance-heading">
-          <Card.Header class="">
-            <Card.Title class="text-card-foreground font-serif" id="attendance-heading"
-              >{party.partyName}, will you be in attendance?</Card.Title
-            >
-          </Card.Header>
-          <Card.Content class="space-y-4">
-            {#each party.members as member (member.id)}
-              <div
-                class="flex items-center justify-between p-4 border border-input rounded-md bg-muted"
-                role="group"
-                aria-labelledby="member-{member.id}-label"
-              >
-                <span class="font-medium text-card-foreground" id="member-{member.id}-label">{member.name}</span>
-                <div class="space-x-2" role="radiogroup" aria-labelledby="member-{member.id}-label">
-                  <Button
-                    variant={member.attending === true ? "default" : "outline"}
-                    class={member.attending === true 
-                      ? "bg-secondary text-secondary-foreground hover:bg-secondary/80" 
-                      : "border-secondary text-secondary hover:bg-muted"}
-                    on:click={() => (member.attending = true)}
-                    role="radio"
-                    aria-checked={member.attending === true}
-                    aria-label="Accept invitation for {member.name}"
-                  >
-                    Politely Accepts
-                  </Button>
-                  <Button
-                    variant={member.attending === false
-                      ? "destructive"
-                      : "outline"}
-                    class={member.attending === false
-                      ? "bg-muted-foreground text-primary-foreground hover:bg-muted-foreground/80"
-                      : "border-muted-foreground text-muted-foreground hover:bg-muted"}
-                    on:click={() => (member.attending = false)}
-                    role="radio"
-                    aria-checked={member.attending === false}
-                    aria-label="Decline invitation for {member.name}"
-                  >
-                    Regretfully Declines
-                  </Button>
-                </div>
-              </div>
-            {/each}
-          </Card.Content>
-        </Card.Root>
-        <div class="flex justify-between mt-4">
-          <Button variant="outline" on:click={prevStep} class="font-sans">Back</Button>
-          <Button on:click={nextStep} variant="wedding" class="font-sans">Continue</Button>
+        <div class="grid gap-[var(--spacing-element)]" role="form">
+          <RadioGroup.Root bind:value={formData.isAttending} class="grid gap-4">
+            <div class="flex items-center space-x-3 p-4 border rounded-md hover:bg-green-50 border-green-200 hover:border-green-300 transition-colors">
+              <RadioGroup.Item value="true" id="accept" class="text-green-600 border-green-600" />
+              <Label for="accept" class="text-lg cursor-pointer flex-1 text-green-800">Joyfully Accepts</Label>
+            </div>
+            <div class="flex items-center space-x-3 p-4 border rounded-md hover:bg-red-50 border-red-200 hover:border-red-300 transition-colors">
+              <RadioGroup.Item value="false" id="decline" class="text-red-500 border-red-500" />
+              <Label for="decline" class="text-lg cursor-pointer flex-1 text-red-700">Regretfully Declines</Label>
+            </div>
+          </RadioGroup.Root>
+          <div class="flex justify-between mt-4">
+            <Button variant="outline" onclick={prevStep} class="font-sans">Back</Button>
+            <Button onclick={goToNextStep} variant="wedding" class="font-sans">Continue</Button>
+          </div>
+          {@render errorDisplay()}
         </div>
       {:else if currentStep === 3}
-        <div role="form" aria-labelledby="details-heading">
-          <h3 class="mb-4 text-lg font-medium text-card-foreground font-serif" id="details-heading">Details for John Smith</h3>
-          <div class="grid gap-6">
+        <div role="form">
+          <div class="grid gap-[var(--spacing-element)]">
+            <div class="grid gap-2">
+              <Label for="email" class="font-medium">Email Address</Label>
+              <Input 
+                id="email" 
+                type="email" 
+                placeholder="your.email@example.com" 
+                aria-required="true"
+                bind:value={formData.email}
+              />
+            </div>
             <fieldset>
-              <legend class="mb-2 block text-muted-foreground font-medium">Pronouns</legend>
-              <RadioGroup.Root bind:value={formData.pronouns} class="" aria-required="true">
+              <legend class="mb-2 block  font-medium">Pronouns</legend>
+              <RadioGroup.Root bind:value={formData.pronouns} class="flex flex-wrap gap-4" aria-required="false">
                 <div class="flex items-center space-x-2">
                   <RadioGroup.Item value="she/her" id="r1" class="text-primary border-input" />
-                  <Label for="r1" class="text-muted-foreground">She/her</Label>
+                  <Label for="r1" class="">She/her</Label>
                 </div>
                 <div class="flex items-center space-x-2">
                   <RadioGroup.Item value="he/him" id="r2" class="text-primary border-input" />
-                  <Label for="r2" class="text-muted-foreground">He/him</Label>
+                  <Label for="r2" class="">He/him</Label>
                 </div>
                 <div class="flex items-center space-x-2">
                   <RadioGroup.Item value="they/them" id="r3" class="text-primary border-input" />
-                  <Label for="r3" class="text-muted-foreground">They/them</Label>
+                  <Label for="r3" class="">They/them</Label>
                 </div>
               </RadioGroup.Root>
             </fieldset>
-            <div>
-              <Label for="dietary" class="text-muted-foreground font-medium"
+            <div class="grid gap-2">
+              <Label for="dietary" class="font-medium"
                 >Do you have any dietary restrictions or allergies?</Label
               >
-              <Textarea
+              <Input
                 id="dietary"
                 placeholder="e.g., Peanut allergy, gluten-free..."
-                class="border-input focus:border-primary focus:ring-primary bg-muted"
-                aria-describedby="dietary-help"
                 bind:value={formData.dietaryRestrictions}
               />
-              <div id="dietary-help" class="sr-only">Please specify any food allergies or dietary requirements we should know about</div>
             </div>
-            <div>
-              <Label for="accessibility" class="text-muted-foreground font-medium"
+            <div class="grid gap-2">
+              <Label for="accessibility" class="font-medium"
                 >Do you need any accessibility accommodations?</Label
               >
-              <Textarea 
+              <Input 
                 id="accessibility" 
-                class="border-input focus:border-primary focus:ring-primary bg-muted"
-                aria-describedby="accessibility-help"
                 placeholder="e.g., wheelchair access, hearing assistance..."
                 bind:value={formData.accessibilityRequirements}
               />
-              <div id="accessibility-help" class="sr-only">Let us know about any accessibility needs to help make your experience comfortable</div>
             </div>
-            <div>
-              <Label for="song" class="text-muted-foreground font-medium"
+            <div class="grid gap-2">
+              <Label for="song" class="font-medium"
                 >What's your favorite love song? (Optional)</Label
               >
-              <Textarea 
+              <Input 
                 id="song" 
-                class="border-input focus:border-primary focus:ring-primary bg-muted"
-                aria-describedby="song-help"
                 placeholder="Artist - Song Title"
                 bind:value={formData.note}
               />
-              <div id="song-help" class="sr-only">Optional: Share a love song that's meaningful to you for our playlist</div>
             </div>
           </div>
+          {@render errorDisplay()}
           <div class="flex justify-between mt-6">
-            <Button variant="outline" on:click={prevStep} class="font-sans">Back</Button>
-            <Button on:click={submitRsvp} variant="wedding" class="font-sans" disabled={isSubmitting}
+            <Button variant="outline" onclick={prevStep} class="font-sans">Back</Button>
+            <Button onclick={submitRsvp} variant="wedding" class="font-sans" disabled={isSubmitting}
               >{isSubmitting ? 'Submitting...' : 'Submit RSVP'}</Button
             >
           </div>
         </div>
       {:else if currentStep === 4}
         <!-- Success Step -->
-        <div class="text-center py-8" role="status" aria-live="polite">
-          <div class="mb-6">
-            <div class="mx-auto w-16 h-16 bg-secondary rounded-full flex items-center justify-center mb-4" aria-hidden="true">
-              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-              </svg>
+        <div class="grid gap-[var(--spacing-element)] text-center" role="status" aria-live="polite">
+          {#if formData.isAttending === "true"}
+            <div>
+              <h3 class="text-lg font-medium mb-4">RSVP Submitted!</h3>
+              <p class="">Thank you for responding. We can't wait to celebrate with you!</p>
             </div>
-            <h3 class="text-2xl font-serif text-card-foreground mb-2" id="success-heading">RSVP Submitted!</h3>
-            <p class="text-muted-foreground" aria-describedby="success-heading">Thank you for responding. We can't wait to celebrate with you!</p>
-          </div>
-          <Button on:click={closeModal} variant="wedding" class="font-sans" aria-label="Close RSVP form">
-            Close
+          {:else}
+            <div>
+              <h3 class="text-lg font-medium mb-4">We'll Miss You!</h3>
+              <p class="">Thank you for letting us know. We'll miss having you there, but we understand!</p>
+            </div>
+          {/if}
+          <Button 
+            href={registryUrl} 
+            variant="wedding" 
+            size="sm"
+            class="font-sans" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            onclick={closeModal}
+          >
+            REGISTRY
           </Button>
         </div>
       {/if}

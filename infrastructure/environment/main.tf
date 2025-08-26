@@ -188,7 +188,7 @@ resource "azurerm_application_insights" "wedding_app_insights" {
 
 
 resource "azurerm_monitor_scheduled_query_rules_alert_v2" "rsvp_success_alert" {
-  count               = local.environment == "prod" ? 1 : 0
+  #count               = local.environment == "prod" ? 1 : 0
   name                = "wedding-rsvp-success-${local.environment}"
   resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
   location            = azurerm_resource_group.wedding_api_env_rg.location

@@ -121,7 +121,8 @@ resource "azurerm_linux_web_app" "wedding_api" {
   }
 
   depends_on = [
-    azurerm_key_vault_secret.database_connection_string
+    azurerm_key_vault_secret.database_connection_string,
+    azurerm_application_insights.wedding_app_insights
   ]
 }
 
@@ -187,13 +188,13 @@ resource "azurerm_application_insights" "wedding_app_insights" {
 
 
 resource "azurerm_monitor_metric_alert" "rsvp_success_alert" {
-  name                = "wedding-rsvp-alert-${local.environment}"
+  name                = "wedding-rsvp-success-${local.environment}"
   resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
   scopes              = [azurerm_application_insights.wedding_app_insights.id]
-  description         = "Alert when RSVP requests are successful"
-  severity            = 3
-  frequency           = "PT1M"
-  window_size         = "PT5M"
+  description         = "Alert when RSVP submissions are successful"
+  severity            = 2
+  frequency           = "PT5M"
+  window_size         = "PT15M"
   tags                = local.tags
 
   criteria {
@@ -202,6 +203,46 @@ resource "azurerm_monitor_metric_alert" "rsvp_success_alert" {
     aggregation      = "Count"
     operator         = "GreaterThan"
     threshold        = 0
+
+    dimension {
+      name     = "request/name"
+      operator = "Include"
+      values   = ["POST /rsvp"]
+    }
+
+    dimension {
+      name     = "request/resultCode"
+      operator = "Include"
+      values   = ["200", "201"]
+    }
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.rsvp_alerts.id
+  }
+
+  depends_on = [
+    azurerm_application_insights.wedding_app_insights,
+    azurerm_monitor_action_group.rsvp_alerts
+  ]
+}
+
+resource "azurerm_monitor_metric_alert" "api_failure_alert" {
+  name                = "wedding-api-failure-${local.environment}"
+  resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
+  scopes              = [azurerm_application_insights.wedding_app_insights.id]
+  description         = "Alert when API requests are failing"
+  severity            = 1
+  frequency           = "PT1M"
+  window_size         = "PT5M"
+  tags                = local.tags
+
+  criteria {
+    metric_namespace = "microsoft.insights/components"
+    metric_name      = "requests/failed"
+    aggregation      = "Count"
+    operator         = "GreaterThan"
+    threshold        = 2
   }
 
   action {

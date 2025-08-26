@@ -12,15 +12,20 @@ public class RSVPEndpointMapper : IEndpointMapper
   {
     var rsvp = app.MapGroup("/rsvp").WithTags("RSVP").WithOpenApi(); // .RequireAuthorization(); // Commented out for testing
 
-    rsvp.MapPost("/", async ([FromBody] IEnumerable<RSVP> rsvps, IGenericAsyncDataService<RSVP, ApplicationDbContext> service, IUnitOfWork<ApplicationDbContext> unitOfWork) =>
+    rsvp.MapPost("/", async ([FromBody] IEnumerable<RSVP> rsvps, IGenericAsyncDataService<RSVP, ApplicationDbContext> service, IUnitOfWork<ApplicationDbContext> unitOfWork, ILogger<RSVPEndpointMapper> logger) =>
     {
+      logger.LogInformation("RSVP submission received for {Count} attendees", rsvps.Count());
+      
       foreach (var r in rsvps)
       {
+        logger.LogInformation("Processing RSVP for {FirstName} {LastName} - Attending: {IsAttending}", 
+          r.FirstName, r.LastName, r.IsAttending);
         await service.AddAsync(r);
       }
 
       await unitOfWork.SaveChangesAsync(new CancellationToken());
 
+      logger.LogInformation("RSVP submission completed successfully for {Count} attendees", rsvps.Count());
       return Results.Created("/rsvp", rsvps);
     });
 

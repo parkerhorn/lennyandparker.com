@@ -20,7 +20,11 @@ public class Program
 
         builder.Services.AddEndpointsApiExplorer();
 
-        builder.Services.AddApplicationInsightsTelemetry();
+        builder.Services.AddApplicationInsightsTelemetry(options =>
+        {
+            options.ConnectionString = builder.Configuration.GetConnectionString("APPLICATIONINSIGHTS_CONNECTION_STRING") 
+                ?? builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
+        });
 
         builder.Services.AddSwaggerGen(c =>
         {

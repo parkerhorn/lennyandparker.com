@@ -4,15 +4,12 @@ import { browser } from '$app/environment';
 // Get API base URL from environment or use default
 const getApiBaseUrl = () => {
   if (browser) {
-    // In production, use the deployed Azure API URL
-    // In development, use localhost
-    return window.location.hostname === 'localhost' 
-      ? 'http://localhost:5000'
-      : 'https://wedding-api-dev.azurewebsites.net';
+    // Always use the deployed Azure API URL
+    return 'https://wedding-api-dev.azurewebsites.net';
   }
   
   // Server-side rendering fallback
-  return process.env.API_BASE_URL || 'http://localhost:5000';
+  return process.env.API_BASE_URL || 'https://wedding-api-dev.azurewebsites.net';
 };
 
 export const API_BASE_URL = getApiBaseUrl();

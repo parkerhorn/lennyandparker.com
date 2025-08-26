@@ -161,6 +161,11 @@ resource "azurerm_linux_web_app" "wedding_client" {
   }
 }
 
+import {
+  to = azurerm_app_service_custom_hostname_binding.wedding_client_domain[0]
+  id = "/subscriptions/cfd85851-6ad9-41be-b2c8-71943ffe0aa2/resourceGroups/wedding-api-prod-rg/providers/Microsoft.Web/sites/wedding-client-prod/hostNameBindings/lennyandparker.com"
+}
+
 resource "azurerm_app_service_custom_hostname_binding" "wedding_client_domain" {
   count               = local.environment == "prod" && var.custom_domain_name != "" ? 1 : 0
   hostname            = var.custom_domain_name
@@ -231,7 +236,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "rsvp_success_alert" {
     query                   = <<-QUERY
       let rsvpRequests = requests
       | where url contains "/rsvp" 
-      | where method == "POST"
+      | where operation_Name contains "POST"
       | where resultCode startswith "2"
       | where timestamp >= ago(15m);
       let rsvpLogs = traces

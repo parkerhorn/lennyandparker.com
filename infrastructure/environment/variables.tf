@@ -29,4 +29,10 @@ variable "alert_emails" {
   description = "List of email addresses to receive RSVP alerts"
   type        = list(string)
   default     = []
+}
+
+variable "custom_domain_name" {
+  description = "Custom domain name for the client web app"
+  type        = string
+  default     = ""
 } 

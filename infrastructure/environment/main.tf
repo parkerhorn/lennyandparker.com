@@ -69,7 +69,7 @@ resource "azurerm_service_plan" "wedding_api_asp" {
   resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
   location            = azurerm_resource_group.wedding_api_env_rg.location
   os_type             = "Linux"
-  sku_name            = "F1"
+  sku_name            = local.environment == "prod" ? "B1" : "F1"
   tags                = local.tags
 }
 
@@ -152,13 +152,38 @@ resource "azurerm_linux_web_app" "wedding_client" {
     application_stack {
       node_version = "20-lts"
     }
-    always_on = false
+    always_on = local.environment == "prod" ? true : false
   }
 
   app_settings = {
     "API_BASE_URL" = "https://${azurerm_linux_web_app.wedding_api.default_hostname}"
     "WEBSITE_RUN_FROM_PACKAGE" = "1"
   }
+}
+
+resource "azurerm_app_service_custom_hostname_binding" "wedding_client_domain" {
+  count               = local.environment == "prod" && var.custom_domain_name != "" ? 1 : 0
+  hostname            = var.custom_domain_name
+  app_service_name    = azurerm_linux_web_app.wedding_client.name
+  resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
+
+  depends_on = [azurerm_linux_web_app.wedding_client]
+}
+
+resource "azurerm_app_service_managed_certificate" "wedding_client_cert" {
+  count                      = local.environment == "prod" && var.custom_domain_name != "" ? 1 : 0
+  custom_hostname_binding_id = azurerm_app_service_custom_hostname_binding.wedding_client_domain[0].id
+
+  depends_on = [azurerm_app_service_custom_hostname_binding.wedding_client_domain]
+}
+
+resource "azurerm_app_service_certificate_binding" "wedding_client_cert_binding" {
+  count           = local.environment == "prod" && var.custom_domain_name != "" ? 1 : 0
+  hostname_binding_id = azurerm_app_service_custom_hostname_binding.wedding_client_domain[0].id
+  certificate_id      = azurerm_app_service_managed_certificate.wedding_client_cert[0].id
+  ssl_state          = "SniEnabled"
+
+  depends_on = [azurerm_app_service_managed_certificate.wedding_client_cert]
 }
 
 resource "azurerm_monitor_action_group" "rsvp_alerts" {

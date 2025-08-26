@@ -6,6 +6,7 @@
   import { Label } from "$lib/components/ui/label";
   import * as RadioGroup from "$lib/components/ui/radio-group";
   import { rsvpApi } from '$lib/config/api.js';
+  import { registryUrl } from '$lib/config/weddingData.js';
 
   // Props
   let { open = $bindable(false) } = $props();
@@ -17,6 +18,28 @@
       fetch('https://wedding-api-dev.azurewebsites.net/health').catch(() => {
         // Ignore errors, just trying to warm the API
       });
+    }
+  });
+
+  // Reset state when modal closes
+  $effect(() => {
+    if (!open) {
+      // Reset state when modal closes
+      setTimeout(() => {
+        currentStep = 1;
+        isSubmitted = false;
+        isSubmitting = false;
+        errorMessage = '';
+        formData = {
+          fullName: '',
+          email: '',
+          isAttending: '',
+          pronouns: '',
+          dietaryRestrictions: '',
+          accessibilityRequirements: '',
+          note: ''
+        };
+      }, 300);
     }
   });
 
@@ -134,22 +157,6 @@
 
   function closeModal() {
     open = false;
-    // Reset state when modal closes
-    setTimeout(() => {
-      currentStep = 1;
-      isSubmitted = false;
-      isSubmitting = false;
-      errorMessage = '';
-      formData = {
-        fullName: '',
-        email: '',
-        isAttending: '',
-        pronouns: '',
-        dietaryRestrictions: '',
-        accessibilityRequirements: '',
-        note: ''
-      };
-    }, 300);
   }
 </script>
 
@@ -169,7 +176,7 @@
   </Dialog.Trigger>
   <Dialog.Content class="container-query bg-card border" portalProps={{}}>
     <Dialog.Header>
-      <Dialog.Title class="text-card-foreground font-serif">
+      <Dialog.Title class="text-card-foreground font-serif text-center">
         {#if currentStep === 1}
           Enter Your Name
         {:else if currentStep === 2}
@@ -177,7 +184,7 @@
         {:else if currentStep === 3}
           Details for {getDisplayName()}
         {:else if currentStep === 4}
-          {formData.isAttending === "true" ? "RSVP Submitted!" : "We'll Miss You!"}
+          <div class="text-2xl text-primary" aria-hidden="true">⋅˚₊‧ ୨୧ ‧₊˚ ⋅</div>
         {/if}
       </Dialog.Title>
     </Dialog.Header>
@@ -201,14 +208,14 @@
         </div>
       {:else if currentStep === 2}
         <div class="grid gap-[var(--spacing-element)]" role="form">
-          <RadioGroup.Root bind:value={formData.isAttending} class="grid gap-3">
-            <div class="flex items-center space-x-3 p-3 border rounded-md hover:bg-muted">
-              <RadioGroup.Item value="true" id="accept" class="text-primary border-input" />
-              <Label for="accept" class="text-lg cursor-pointer flex-1">✓ Politely Accepts</Label>
+          <RadioGroup.Root bind:value={formData.isAttending} class="grid gap-4">
+            <div class="flex items-center space-x-3 p-4 border rounded-md hover:bg-green-50 border-green-200 hover:border-green-300 transition-colors">
+              <RadioGroup.Item value="true" id="accept" class="text-green-600 border-green-600" />
+              <Label for="accept" class="text-lg cursor-pointer flex-1 text-green-800">Joyfully Accepts</Label>
             </div>
-            <div class="flex items-center space-x-3 p-3 border rounded-md hover:bg-muted">
-              <RadioGroup.Item value="false" id="decline" class="text-primary border-input" />
-              <Label for="decline" class="text-lg cursor-pointer flex-1">✗ Regretfully Declines</Label>
+            <div class="flex items-center space-x-3 p-4 border rounded-md hover:bg-red-50 border-red-200 hover:border-red-300 transition-colors">
+              <RadioGroup.Item value="false" id="decline" class="text-red-500 border-red-500" />
+              <Label for="decline" class="text-lg cursor-pointer flex-1 text-red-700">Regretfully Declines</Label>
             </div>
           </RadioGroup.Root>
           <div class="flex justify-between mt-4">
@@ -288,28 +295,28 @@
         </div>
       {:else if currentStep === 4}
         <!-- Success Step -->
-        <div class="text-center py-8" role="status" aria-live="polite">
+        <div class="grid gap-[var(--spacing-element)] text-center" role="status" aria-live="polite">
           {#if formData.isAttending === "true"}
-            <div class="mb-6">
-              <div class="mx-auto w-16 h-16 bg-secondary rounded-full flex items-center justify-center mb-4" aria-hidden="true">
-                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-              </div>
+            <div>
+              <h3 class="text-lg font-medium mb-4">RSVP Submitted!</h3>
               <p class="">Thank you for responding. We can't wait to celebrate with you!</p>
             </div>
           {:else}
-            <div class="mb-6">
-              <div class="mx-auto w-16 h-16 bg-muted-foreground rounded-full flex items-center justify-center mb-4" aria-hidden="true">
-                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              </div>
+            <div>
+              <h3 class="text-lg font-medium mb-4">We'll Miss You!</h3>
               <p class="">Thank you for letting us know. We'll miss having you there, but we understand!</p>
             </div>
           {/if}
-          <Button onclick={closeModal} variant="wedding" class="font-sans" aria-label="Close RSVP form">
-            Close
+          <Button 
+            href={registryUrl} 
+            variant="wedding" 
+            size="sm"
+            class="font-sans" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            onclick={closeModal}
+          >
+            REGISTRY
           </Button>
         </div>
       {/if}

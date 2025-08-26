@@ -5,6 +5,8 @@
   import { Button } from "$lib/components/ui/button";
   import { registryUrl } from "$lib/config/weddingData.js";
 
+  let { data } = $props();
+
   let isRsvpOpen = $state(false);
   let isLoaded = $state(false);
 
@@ -22,10 +24,17 @@
     return Math.max(0, daysDiff);
   }
 
-  let daysRemaining = $state(calculateDaysRemaining());
+  // Start with server-calculated value
+  let daysRemaining = $state(data.daysRemaining);
 
   onMount(() => {
     isLoaded = true;
+
+    // Sync with client calculation (in case of timing differences)
+    const clientDays = calculateDaysRemaining();
+    if (clientDays !== daysRemaining) {
+      daysRemaining = clientDays;
+    }
 
     // Update countdown daily at midnight
     const now = new Date();

@@ -98,14 +98,14 @@
       
       // Prepare RSVP data for backend - direct API format
       const rsvpData = {
-        firstName: firstName,
-        lastName: lastName,
-        email: formData.email,
-        isAttending: formData.isAttending,
-        dietaryRestrictions: formData.dietaryRestrictions || null,
-        accessibilityRequirements: formData.accessibilityRequirements || null,
-        pronouns: formData.pronouns || null,
-        note: formData.note || null
+        FirstName: firstName,
+        LastName: lastName,
+        Email: formData.email,
+        IsAttending: formData.isAttending,
+        DietaryRestrictions: formData.dietaryRestrictions || null,
+        AccessibilityRequirements: formData.accessibilityRequirements || null,
+        Pronouns: formData.pronouns || null,
+        Note: formData.note || null
       };
 
 

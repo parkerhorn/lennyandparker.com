@@ -290,31 +290,3 @@ resource "azurerm_application_insights" "wedding_app_insights" {
 #     azurerm_monitor_action_group.rsvp_alerts
 #   ]
 # }
-
-output "custom_domain_verification_id" {
-  description = "Custom Domain Verification ID for DNS TXT record"
-  value       = azurerm_linux_web_app.wedding_client.custom_domain_verification_id
-  sensitive   = false
-}
-
-output "client_app_default_hostname" {
-  description = "Default hostname of the client web app"
-  value       = azurerm_linux_web_app.wedding_client.default_hostname
-}
-
-output "dns_configuration_instructions" {
-  description = "DNS records needed for custom domain setup"
-  value = {
-    domain_name = var.custom_domain_name
-    cname_record = {
-      type  = "CNAME"
-      name  = var.custom_domain_name != "" ? split(".", var.custom_domain_name)[0] : "www"
-      value = azurerm_linux_web_app.wedding_client.default_hostname
-    }
-    txt_record = {
-      type  = "TXT"
-      name  = var.custom_domain_name != "" ? "asuid.${split(".", var.custom_domain_name)[0]}" : "asuid.www"
-      value = azurerm_linux_web_app.wedding_client.custom_domain_verification_id
-    }
-  }
-} 

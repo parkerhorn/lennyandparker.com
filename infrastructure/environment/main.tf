@@ -208,6 +208,10 @@ resource "azurerm_application_insights" "wedding_app_insights" {
   resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
   application_type    = "web"
   tags                = local.tags
+
+  lifecycle {
+    ignore_changes = [workspace_id]
+  }
 }
 
 

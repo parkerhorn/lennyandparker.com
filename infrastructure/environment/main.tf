@@ -187,33 +187,52 @@ resource "azurerm_application_insights" "wedding_app_insights" {
 
 
 
-resource "azurerm_monitor_metric_alert" "rsvp_success_alert" {
+resource "azurerm_monitor_scheduled_query_rules_alert_v2" "rsvp_success_alert" {
   count               = local.environment == "prod" ? 1 : 0
   name                = "wedding-rsvp-success-${local.environment}"
   resource_group_name = azurerm_resource_group.wedding_api_env_rg.name
-  scopes              = [azurerm_application_insights.wedding_app_insights.id]
-  description         = "Alert when RSVP submissions are successful"
-  severity            = 2
-  frequency           = "PT5M"
-  window_size         = "PT15M"
-  tags                = local.tags
-
+  location            = azurerm_resource_group.wedding_api_env_rg.location
+  
+  evaluation_frequency = "PT5M"
+  window_duration      = "PT15M"
+  scopes               = [azurerm_application_insights.wedding_app_insights.id]
+  severity             = 2
+  
   criteria {
-    metric_namespace = "microsoft.insights/components"
-    metric_name      = "requests/count"
-    aggregation      = "Count"
-    operator         = "GreaterThan"
-    threshold        = 0
+    query                   = <<-QUERY
+      let rsvpRequests = requests
+      | where url contains "/rsvp" 
+      | where method == "POST"
+      | where resultCode startswith "2"
+      | where timestamp >= ago(15m);
+      let rsvpLogs = traces
+      | where message contains "Data:"
+      | where timestamp >= ago(15m)
+      | project timestamp, rsvpData = extract("Data: (.*)", 1, message);
+      rsvpRequests
+      | join kind=leftouter (rsvpLogs) on $left.timestamp == $right.timestamp
+      | project timestamp, url, resultCode, duration, rsvpData
+      | where isnotempty(rsvpData)
+      QUERY
+    time_aggregation_method = "Count"
+    threshold               = 0
+    operator                = "GreaterThan"
   }
 
   action {
-    action_group_id = azurerm_monitor_action_group.rsvp_alerts.id
+    action_groups = [azurerm_monitor_action_group.rsvp_alerts.id]
+    custom_properties = {
+      "alert_description" = "New RSVP submission detected"
+      "query_results_url" = "https://portal.azure.com/#@/blade/Microsoft_Azure_Monitoring_Logs/LogsBlade/resourceId/%2Fsubscriptions%2F${data.azurerm_client_config.current.subscription_id}%2FresourceGroups%2F${azurerm_resource_group.wedding_api_env_rg.name}%2Fproviders%2Fmicrosoft.insights%2Fcomponents%2F${azurerm_application_insights.wedding_app_insights.name}"
+    }
   }
 
   depends_on = [
     azurerm_application_insights.wedding_app_insights,
     azurerm_monitor_action_group.rsvp_alerts
   ]
+  
+  tags = local.tags
 }
 
 resource "azurerm_monitor_metric_alert" "api_failure_alert" {

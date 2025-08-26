@@ -14,18 +14,20 @@ public class RSVPEndpointMapper : IEndpointMapper
 
     rsvp.MapPost("/", async ([FromBody] IEnumerable<RSVP> rsvps, IGenericAsyncDataService<RSVP, ApplicationDbContext> service, IUnitOfWork<ApplicationDbContext> unitOfWork, ILogger<RSVPEndpointMapper> logger) =>
     {
-      logger.LogInformation("RSVP submission received for {Count} attendees", rsvps.Count());
       
       foreach (var r in rsvps)
       {
-        logger.LogInformation("Processing RSVP for {FirstName} {LastName} - Attending: {IsAttending}", 
-          r.FirstName, r.LastName, r.IsAttending);
         await service.AddAsync(r);
       }
 
       await unitOfWork.SaveChangesAsync(new CancellationToken());
 
+      var rsvpSummary = string.Join("; ", rsvps.Select(r => $"{r.FirstName} {r.LastName}: {(r.IsAttending ? "ATTENDING" : "NOT ATTENDING")}"));
+
+      logger.LogInformation("Data: {RSVPSummary}", rsvpSummary);
+      
       logger.LogInformation("RSVP submission completed successfully for {Count} attendees", rsvps.Count());
+      
       return Results.Created("/rsvp", rsvps);
     });
 

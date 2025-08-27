@@ -5,58 +5,79 @@
   import { Input } from "$lib/components/ui/input";
   import { Label } from "$lib/components/ui/label";
   import * as RadioGroup from "$lib/components/ui/radio-group";
-  import { rsvpApi } from '$lib/config/api.js';
+  import { rsvpApi, API_BASE_URL } from '$lib/config/api.js';
   import { registryUrl } from '$lib/config/weddingData.js';
 
   // Props
   let { open = $bindable(false) } = $props();
 
-  // Pre-warm API when modal opens
+  // Debounced API health check - prevent rapid successive calls
+  let healthCheckTimer = null;
+  let lastHealthCheck = 0;
+  const HEALTH_CHECK_COOLDOWN = 30000; // 30 seconds
+
   $effect(() => {
-    if (open) {
-      // Wake up API in background - fire and forget
-      fetch('https://wedding-api-dev.azurewebsites.net/health').catch(() => {
-        // Ignore errors, just trying to warm the API
-      });
+    if (open && shouldCheckHealth()) {
+      scheduleHealthCheck();
     }
   });
 
-  // Reset state when modal closes
+  function shouldCheckHealth() {
+    return Date.now() - lastHealthCheck > HEALTH_CHECK_COOLDOWN;
+  }
+
+  function scheduleHealthCheck() {
+    clearTimeout(healthCheckTimer);
+    healthCheckTimer = setTimeout(async () => {
+      try {
+        await fetch(`${API_BASE_URL}/health`);
+        lastHealthCheck = Date.now();
+      } catch (error) {
+        // Silent fail - just trying to warm the API
+      }
+    }, 100); // Small delay to debounce rapid clicks
+  }
+
+  // Reset state immediately when modal closes - no delay needed
   $effect(() => {
     if (!open) {
-      // Reset state when modal closes
-      setTimeout(() => {
-        currentStep = 1;
-        isSubmitted = false;
-        isSubmitting = false;
-        errorMessage = '';
-        formData = {
-          fullName: '',
-          email: '',
-          isAttending: '',
-          pronouns: '',
-          dietaryRestrictions: '',
-          accessibilityRequirements: '',
-          note: ''
-        };
-      }, 300);
+      resetFormState();
     }
   });
+
+  /**
+   * Reset all form state to initial values
+   * No setTimeout needed - CSS animations are independent of JS state
+   */
+  function resetFormState() {
+    currentStep = 1;
+    isSubmitted = false;
+    isSubmitting = false;
+    errorMessage = '';
+    formData = getInitialFormData();
+  }
+
+  /**
+   * Get initial form data object
+   */
+  function getInitialFormData() {
+    return {
+      fullName: '',
+      email: '',
+      isAttending: /** @type {string} */ (''),
+      pronouns: '',
+      dietaryRestrictions: '',
+      accessibilityRequirements: '',
+      note: ''
+    };
+  }
 
   // State Management
   let currentStep = $state(1);
   let isSubmitted = $state(false);
   let isSubmitting = $state(false);
   let errorMessage = $state('');
-  let formData = $state({
-    fullName: '',
-    email: '',
-    isAttending: /** @type {string} */ (''),
-    pronouns: '',
-    dietaryRestrictions: '',
-    accessibilityRequirements: '',
-    note: ''
-  });
+  let formData = $state(getInitialFormData());
 
   // Navigation Functions
   function nextStep() {
@@ -174,22 +195,24 @@
       RSVP Now
     </Button>
   </Dialog.Trigger>
-  <Dialog.Content class="container-query bg-card border" portalProps={{}}>
-    <Dialog.Header>
-      <Dialog.Title class="text-card-foreground font-serif text-center">
-        {#if currentStep === 1}
-          Enter Your Name
-        {:else if currentStep === 2}
-          {getDisplayName()}, will you attend?
-        {:else if currentStep === 3}
-          Details for {getDisplayName()}
-        {:else if currentStep === 4}
-          <div class="text-2xl text-primary" aria-hidden="true">⋅˚₊‧ ୨୧ ‧₊˚ ⋅</div>
-        {/if}
-      </Dialog.Title>
-    </Dialog.Header>
+  
+  {#if open}
+    <Dialog.Content class="container-query bg-card border" portalProps={{}}>
+      <Dialog.Header>
+        <Dialog.Title class="text-card-foreground font-serif text-center">
+          {#if currentStep === 1}
+            Enter Your Name
+          {:else if currentStep === 2}
+            {getDisplayName()}, will you attend?
+          {:else if currentStep === 3}
+            Details for {getDisplayName()}
+          {:else if currentStep === 4}
+            <div class="text-2xl text-primary" aria-hidden="true">⋅˚₊‧ ୨୧ ‧₊˚ ⋅</div>
+          {/if}
+        </Dialog.Title>
+      </Dialog.Header>
 
-    <div class="py-4" role="main" aria-live="polite">
+      <div class="py-4" role="main" aria-live="polite">
       {#if currentStep === 1}
         <div class="grid gap-[var(--spacing-element)]" role="form">
           <div class="grid gap-2">
@@ -319,7 +342,8 @@
             REGISTRY
           </Button>
         </div>
-      {/if}
-    </div>
-  </Dialog.Content>
+        {/if}
+      </div>
+    </Dialog.Content>
+  {/if}
 </Dialog.Root>

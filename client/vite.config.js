@@ -6,4 +6,15 @@ export default defineConfig({
   ssr: {
     noExternal: [],
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          if (id.includes('app.css') || id.includes('HeroSection')) {
+            return 'critical';
+          }
+        }
+      }
+    }
+  }
 });

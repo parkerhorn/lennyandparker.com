@@ -30,12 +30,6 @@
   onMount(() => {
     isLoaded = true;
 
-    // Sync with client calculation (in case of timing differences)
-    const clientDays = calculateDaysRemaining();
-    if (clientDays !== daysRemaining) {
-      daysRemaining = clientDays;
-    }
-
     // Update countdown daily at midnight
     const now = new Date();
     const tomorrow = new Date(
@@ -64,11 +58,13 @@
 <section class="hero-section container-query">
   <div class="fluid-container">
     <div class="responsive-grid items-center justify-center">
-      <div class="design-image {isLoaded ? 'loaded' : ''}">
+      <div class="design-image {isLoaded ? 'loaded' : ''}" style="contain: layout;">
         <img
           src={lennyParkerDesign}
           alt="Lenny and Parker - Save the Date"
           class="hero-design responsive-image"
+          loading="eager"
+          decoding="sync"
         />
       </div>
 

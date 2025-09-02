@@ -15,7 +15,7 @@
   $effect(() => {
     if (open) {
       // Wake up API in background - fire and forget
-      fetch('https://wedding-api-dev.azurewebsites.net/health').catch(() => {
+      fetch('https://wedding-api-prod.azurewebsites.net/health').catch(() => {
         // Ignore errors, just trying to warm the API
       });
     }

@@ -5,11 +5,11 @@ import { browser } from '$app/environment';
 const getApiBaseUrl = () => {
   if (browser) {
     // Always use the deployed Azure API URL
-    return 'https://wedding-api-dev.azurewebsites.net';
+    return 'https://wedding-api-prod.azurewebsites.net';
   }
   
   // Server-side rendering fallback
-  return process.env.API_BASE_URL || 'https://wedding-api-dev.azurewebsites.net';
+  return process.env.API_BASE_URL || 'https://wedding-api-prod.azurewebsites.net';
 };
 
 export const API_BASE_URL = getApiBaseUrl();

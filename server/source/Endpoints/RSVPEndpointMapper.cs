@@ -112,6 +112,7 @@ public class RSVPEndpointMapper : IEndpointMapper
       if (bestMatch.PlusOneId.HasValue)
       {
         var plusOne = allRsvps.FirstOrDefault(r => r.Id == bestMatch.PlusOneId);
+        
         if (plusOne != null)
         {
           resultRsvps.Add(plusOne);

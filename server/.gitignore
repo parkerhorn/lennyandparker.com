@@ -19,3 +19,6 @@
 /tests/WeddingApi.IntegrationTests/obj
 /tests/WeddingApi.IntegrationTests/appsettings.Development.json
 
+# Ignore scripts folder containing guest data and SQL scripts
+/source/Scripts/
+

@@ -95,19 +95,28 @@
 
     try {
       const { firstName, lastName } = parseFullName(searchName);
+      console.log('Searching for:', { firstName, lastName }); // Debug log
       const rsvps = await rsvpApi.searchGuest(firstName, lastName);
+      
+      console.log('API Response:', rsvps); // Debug log
+      console.log('API Response length:', rsvps.length); // Debug log
+      if (rsvps.length > 0) {
+        console.log('First RSVP properties:', Object.keys(rsvps[0])); // Debug log
+      }
       
       foundRsvps = rsvps;
       
       // Pre-fill form with first RSVP (the searched person)
       const mainGuest = rsvps[0];
-      currentRsvpForm.fullName = `${mainGuest.FirstName} ${mainGuest.LastName}`;
-      currentRsvpForm.email = mainGuest.Email || '';
-      currentRsvpForm.isAttending = mainGuest.IsAttending ? 'true' : '';
-      currentRsvpForm.pronouns = mainGuest.Pronouns || '';
-      currentRsvpForm.dietaryRestrictions = mainGuest.DietaryRestrictions || '';
-      currentRsvpForm.accessibilityRequirements = mainGuest.AccessibilityRequirements || '';
-      currentRsvpForm.note = mainGuest.Note || '';
+      console.log('Main Guest:', mainGuest); // Debug log
+      
+      currentRsvpForm.fullName = `${mainGuest.firstName || 'Unknown'} ${mainGuest.lastName || 'Unknown'}`;
+      currentRsvpForm.email = mainGuest.email || '';
+      currentRsvpForm.isAttending = mainGuest.isAttending ? 'true' : '';
+      currentRsvpForm.pronouns = mainGuest.pronouns || '';
+      currentRsvpForm.dietaryRestrictions = mainGuest.dietaryRestrictions || '';
+      currentRsvpForm.accessibilityRequirements = mainGuest.accessibilityRequirements || '';
+      currentRsvpForm.note = mainGuest.note || '';
       
       nextStep(); // Go directly to RSVP form
     } catch (error) {
@@ -177,14 +186,14 @@
     
     foundRsvps[0] = {
       ...foundRsvps[0], // Keep all original properties including Id
-      FirstName: firstName,
-      LastName: lastName,
-      Email: currentRsvpForm.email || foundRsvps[0]?.Email || '',
-      IsAttending: currentRsvpForm.isAttending === "true",
-      DietaryRestrictions: currentRsvpForm.dietaryRestrictions || null,
-      AccessibilityRequirements: currentRsvpForm.accessibilityRequirements || null,
-      Pronouns: currentRsvpForm.pronouns || null,
-      Note: currentRsvpForm.note || null
+      firstName: firstName,
+      lastName: lastName,
+      email: currentRsvpForm.email || foundRsvps[0]?.email || '',
+      isAttending: currentRsvpForm.isAttending === "true",
+      dietaryRestrictions: currentRsvpForm.dietaryRestrictions || null,
+      accessibilityRequirements: currentRsvpForm.accessibilityRequirements || null,
+      pronouns: currentRsvpForm.pronouns || null,
+      note: currentRsvpForm.note || null
     };
 
     // Check if there's a plus-one and if they're attending
@@ -193,20 +202,20 @@
         // Show plus-one form
         const plusOne = foundRsvps[1];
         currentRsvpForm = {
-          fullName: `${plusOne.FirstName} ${plusOne.LastName}`,
-          email: plusOne.Email || '',
-          isAttending: plusOne.IsAttending ? 'true' : '',
-          pronouns: plusOne.Pronouns || '',
-          dietaryRestrictions: plusOne.DietaryRestrictions || '',
-          accessibilityRequirements: plusOne.AccessibilityRequirements || '',
-          note: plusOne.Note || ''
+          fullName: `${plusOne.firstName} ${plusOne.lastName}`,
+          email: plusOne.email || '',
+          isAttending: plusOne.isAttending ? 'true' : '',
+          pronouns: plusOne.pronouns || '',
+          dietaryRestrictions: plusOne.dietaryRestrictions || '',
+          accessibilityRequirements: plusOne.accessibilityRequirements || '',
+          note: plusOne.note || ''
         };
         nextStep(); // Go to plus-one form
       } else {
         // Mark plus-one as not attending and submit
         foundRsvps[1] = {
           ...foundRsvps[1],
-          IsAttending: false
+          isAttending: false
         };
         submitAllRsvps();
       }
@@ -228,14 +237,14 @@
     
     foundRsvps[1] = {
       ...foundRsvps[1], // Keep all original properties including Id
-      FirstName: firstName,
-      LastName: lastName,
-      Email: currentRsvpForm.email || foundRsvps[1]?.Email || '',
-      IsAttending: currentRsvpForm.isAttending === "true",
-      DietaryRestrictions: currentRsvpForm.dietaryRestrictions || null,
-      AccessibilityRequirements: currentRsvpForm.accessibilityRequirements || null,
-      Pronouns: currentRsvpForm.pronouns || null,
-      Note: currentRsvpForm.note || null
+      firstName: firstName,
+      lastName: lastName,
+      email: currentRsvpForm.email || foundRsvps[1]?.email || '',
+      isAttending: currentRsvpForm.isAttending === "true",
+      dietaryRestrictions: currentRsvpForm.dietaryRestrictions || null,
+      accessibilityRequirements: currentRsvpForm.accessibilityRequirements || null,
+      pronouns: currentRsvpForm.pronouns || null,
+      note: currentRsvpForm.note || null
     };
 
     submitAllRsvps();
@@ -248,9 +257,22 @@
     
     try {
       if (foundRsvps.length > 0) {
-        // Update existing RSVP(s)
+        // Update existing RSVP(s) - convert camelCase to PascalCase for API
         for (const rsvp of foundRsvps) {
-          await rsvpApi.update(rsvp.Id, rsvp);
+          console.log('Updating RSVP:', rsvp); // Debug log
+          const updateData = {
+            FirstName: rsvp.firstName,
+            LastName: rsvp.lastName,
+            Email: rsvp.email,
+            IsAttending: rsvp.isAttending,
+            DietaryRestrictions: rsvp.dietaryRestrictions,
+            AccessibilityRequirements: rsvp.accessibilityRequirements,
+            Pronouns: rsvp.pronouns,
+            Note: rsvp.note,
+            PlusOneId: rsvp.plusOneId
+          };
+          console.log('Sending update data:', updateData); // Debug log
+          await rsvpApi.update(rsvp.id, updateData);
         }
       } else {
         // Create new RSVP for guest not found in database
@@ -291,7 +313,7 @@
   // Get plus-one name for display
   function getPlusOneName() {
     if (foundRsvps.length > 1) {
-      return `${foundRsvps[1].FirstName} ${foundRsvps[1].LastName}`;
+      return `${foundRsvps[1].firstName} ${foundRsvps[1].lastName}`;
     }
     return 'Plus-One';
   }

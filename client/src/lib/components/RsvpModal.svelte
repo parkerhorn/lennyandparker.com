@@ -101,13 +101,13 @@
       
       // Pre-fill form with first RSVP (the searched person)
       const mainGuest = rsvps[0];
-      currentRsvpForm.fullName = `${mainGuest.firstName} ${mainGuest.lastName}`;
-      currentRsvpForm.email = mainGuest.email || '';
-      currentRsvpForm.isAttending = mainGuest.isAttending ? 'true' : '';
-      currentRsvpForm.pronouns = mainGuest.pronouns || '';
-      currentRsvpForm.dietaryRestrictions = mainGuest.dietaryRestrictions || '';
-      currentRsvpForm.accessibilityRequirements = mainGuest.accessibilityRequirements || '';
-      currentRsvpForm.note = mainGuest.note || '';
+      currentRsvpForm.fullName = `${mainGuest.FirstName} ${mainGuest.LastName}`;
+      currentRsvpForm.email = mainGuest.Email || '';
+      currentRsvpForm.isAttending = mainGuest.IsAttending ? 'true' : '';
+      currentRsvpForm.pronouns = mainGuest.Pronouns || '';
+      currentRsvpForm.dietaryRestrictions = mainGuest.DietaryRestrictions || '';
+      currentRsvpForm.accessibilityRequirements = mainGuest.AccessibilityRequirements || '';
+      currentRsvpForm.note = mainGuest.Note || '';
       
       nextStep(); // Go directly to RSVP form
     } catch (error) {
@@ -176,10 +176,10 @@
     const { firstName, lastName } = parseFullName(currentRsvpForm.fullName);
     
     foundRsvps[0] = {
-      ...mainGuest,
+      ...foundRsvps[0], // Keep all original properties including Id
       FirstName: firstName,
       LastName: lastName,
-      Email: currentRsvpForm.email || mainGuest?.Email || '',
+      Email: currentRsvpForm.email || foundRsvps[0]?.Email || '',
       IsAttending: currentRsvpForm.isAttending === "true",
       DietaryRestrictions: currentRsvpForm.dietaryRestrictions || null,
       AccessibilityRequirements: currentRsvpForm.accessibilityRequirements || null,
@@ -193,13 +193,13 @@
         // Show plus-one form
         const plusOne = foundRsvps[1];
         currentRsvpForm = {
-          fullName: `${plusOne.firstName} ${plusOne.lastName}`,
-          email: plusOne.email || '',
-          isAttending: plusOne.isAttending ? 'true' : '',
-          pronouns: plusOne.pronouns || '',
-          dietaryRestrictions: plusOne.dietaryRestrictions || '',
-          accessibilityRequirements: plusOne.accessibilityRequirements || '',
-          note: plusOne.note || ''
+          fullName: `${plusOne.FirstName} ${plusOne.LastName}`,
+          email: plusOne.Email || '',
+          isAttending: plusOne.IsAttending ? 'true' : '',
+          pronouns: plusOne.Pronouns || '',
+          dietaryRestrictions: plusOne.DietaryRestrictions || '',
+          accessibilityRequirements: plusOne.AccessibilityRequirements || '',
+          note: plusOne.Note || ''
         };
         nextStep(); // Go to plus-one form
       } else {
@@ -227,10 +227,10 @@
     const { firstName, lastName } = parseFullName(currentRsvpForm.fullName);
     
     foundRsvps[1] = {
-      ...plusOne,
+      ...foundRsvps[1], // Keep all original properties including Id
       FirstName: firstName,
       LastName: lastName,
-      Email: currentRsvpForm.email || plusOne?.Email || '',
+      Email: currentRsvpForm.email || foundRsvps[1]?.Email || '',
       IsAttending: currentRsvpForm.isAttending === "true",
       DietaryRestrictions: currentRsvpForm.dietaryRestrictions || null,
       AccessibilityRequirements: currentRsvpForm.accessibilityRequirements || null,
@@ -291,7 +291,7 @@
   // Get plus-one name for display
   function getPlusOneName() {
     if (foundRsvps.length > 1) {
-      return `${foundRsvps[1].firstName} ${foundRsvps[1].lastName}`;
+      return `${foundRsvps[1].FirstName} ${foundRsvps[1].LastName}`;
     }
     return 'Plus-One';
   }

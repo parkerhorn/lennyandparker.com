@@ -4,7 +4,7 @@ export const weddingDetails = {
   date: 'Saturday, November 8th, 2025 at 3pm',
   venue: {
     name: 'House Boheme',
-    address: '572 Freemantown Road, Rutherfordton, North Carolina 28139'
+    address: '872 Freemantown Rd, Rutherfordton, NC 28139'
   },
   attire: 'Semi-Formal for a garden party. Anything that makes you feel beautiful and celebratory. Definitely bring layers and shoes you can walk on grass in.'
 };

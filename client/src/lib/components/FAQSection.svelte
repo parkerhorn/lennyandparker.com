@@ -9,7 +9,7 @@
       answer: 'Rumbling Bald on Lake Lure is where most folks are staying. For the best vibes and closest proximity, we recommend booking in the Apple Valley or Stonecrest condos. Use Code: "LennyandParker"',
       hasLink: true,
       linkText: 'Visit Website',
-      linkAction: () => window.open('https://www.rumblingbald.com', '_blank')
+      linkAction: () => window.open('https://www.rumblingbaldlodging.com/vacation-rentals-homes-search.asp?txtStartDate=11%2F7%2F2025&txtEndDate=11%2F9%2F2025&categoryid=0&destinationID=0&communityID=0&amenBedrooms=-1&maxPersons=0&advs=&sort=0&currentPage=1&flexibleDates=0&flexibleDatesThreshold=&searchAmenities=&showOnlySpecials=0', '_blank')
     },
     {
       id: 'venue',

@@ -9,10 +9,7 @@
   // Wedding details from config
   import { weddingDetails, weddingProgram } from '$lib/config/weddingData.js';
 
-  function handleGetDirections() {
-    const address = encodeURIComponent(weddingDetails.venue.address);
-    window.open(`https://maps.google.com/?q=${address}`, '_blank');
-  }
+  $: directionsUrl = `https://maps.google.com/?q=${encodeURIComponent(weddingDetails.venue.address)}`;
 </script>
 
 <section class="fluid-spacing-section container-query">
@@ -49,16 +46,17 @@
             <div class="absolute flex flex-col justify-center items-center text-center" style="top: clamp(3rem, 4vw, 4rem); left: clamp(1.5rem, 3vw, 2rem); right: clamp(0.75rem, 2vw, 1rem); bottom: clamp(0.75rem, 2vw, 1rem); padding: clamp(0.5rem, 2vw, 1rem); gap: clamp(0.25rem, 1vw, 0.5rem);">
               <p class="font-serif text-foreground fluid-body leading-tight">
                 {weddingDetails.venue.name}<br />
-                572 Freemantown Road,<br />
-                Rutherfordton,<br />
-                North Carolina 28139
+                872 Freemantown Rd,<br />
+                Rutherfordton, NC 28139
               </p>
               <Button 
+                href={directionsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 variant="weddingSecondary" 
                 size="sm" 
                 class="font-sans"
                 style="font-size: clamp(0.75rem, 1.5vw, 0.875rem);"
-                on:click={handleGetDirections}
               >
                 Get Directions
               </Button>

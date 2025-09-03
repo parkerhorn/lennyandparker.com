@@ -9,7 +9,7 @@
   // Wedding details from config
   import { weddingDetails, weddingProgram } from '$lib/config/weddingData.js';
 
-  $: directionsUrl = `https://maps.google.com/?q=${encodeURIComponent(weddingDetails.venue.address)}`;
+  $: directionsUrl = `https://maps.google.com/?q=${encodeURIComponent(`${weddingDetails.venue.name}, ${weddingDetails.venue.address}`)}`;
 </script>
 
 <section class="fluid-spacing-section container-query">

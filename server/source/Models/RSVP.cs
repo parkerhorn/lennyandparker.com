@@ -10,4 +10,5 @@ public class RSVP : GenericBaseClass
     public string? AccessibilityRequirements { get; set; }
     public string? Pronouns { get; set; }
     public string? Note { get; set; }
+    public Guid? PlusOneId { get; set; }
 } 

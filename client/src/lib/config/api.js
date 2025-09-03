@@ -74,5 +74,18 @@ export const rsvpApi = {
       method: 'PUT',
       body: JSON.stringify(rsvp)
     });
-  }
+  },
+
+  // Search for guest by name (fuzzy matching)
+  async searchGuest(firstName, lastName) {
+    const params = new URLSearchParams();
+    if (firstName) params.append('firstName', firstName);
+    if (lastName) params.append('lastName', lastName);
+    
+    return apiCall(`/rsvp/search?${params.toString()}`);
+  },
+
+
+
+
 };

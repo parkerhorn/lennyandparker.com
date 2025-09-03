@@ -62,6 +62,7 @@ public class RSVPEndpointMapper : IEndpointMapper
       item.AccessibilityRequirements = rsvp.AccessibilityRequirements;
       item.Pronouns = rsvp.Pronouns;
       item.Note = rsvp.Note;
+      item.PlusOneId = rsvp.PlusOneId;
       item.UpdatedAt = DateTime.UtcNow;
 
       return Results.Ok(await service.UpdateAndSaveAsync(item));
@@ -103,12 +104,23 @@ public class RSVPEndpointMapper : IEndpointMapper
 
       if (bestMatch == null)
       {
-        return Results.NotFound("No matching RSVP found");
+        return Results.NotFound("No matching guest found");
       }
 
-      return Results.Ok(bestMatch);
+      var resultRsvps = new List<RSVP> { bestMatch };
+
+      if (bestMatch.PlusOneId.HasValue)
+      {
+        var plusOne = allRsvps.FirstOrDefault(r => r.Id == bestMatch.PlusOneId);
+        if (plusOne != null)
+        {
+          resultRsvps.Add(plusOne);
+        }
+      }
+
+      return Results.Ok(resultRsvps);
     })
     .WithName("SearchRSVPs")
-    .WithDescription("Find the best matching RSVP by first and last name using fuzzy search (90%+ similarity)");
+    .WithDescription("Find the best matching RSVP by first and last name using fuzzy search. Returns array containing the matched person and their plus-one (if they have one).");
   }
 }
